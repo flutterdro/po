@@ -25,15 +25,18 @@ add_compile_options(
 )
 
 file(GLOB PROJECT_HEADERS src/*.h
+                          src/rtw/*.h
 )
 file(GLOB PROJECT_SOURCES src/*.cpp
+                          src/rtw/*.cpp
 )
 add_executable(${PROJECT_NAME}
-${PROJECT_SOURCES} ${PROJECT_HEADERS}
+${PROJECT_SOURCES}
 )
 
 target_include_directories(${PROJECT_NAME} 
 PUBLIC vendor/fmt/include
+PUBLIC ${PROJECT_HEADERS}
 )
 
 target_link_libraries(${PROJECT_NAME} 
