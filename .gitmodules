@@ -2,3 +2,13 @@
     path = vendor/fmt
     url = https://github.com/fmtlib/fmt.git
     branch = master
+
+[submodule "vendor/glfw"]
+    path = vendor/glfw
+    url = https://github.com/glfw/glfw.git
+    branch = master
+
+[submodule "vendor/glad"]
+    path = vendor/glad
+    url = https://github.com/Dav1dde/glad.git
+    branch = c

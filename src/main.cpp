@@ -2,8 +2,16 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+
+// #include <TGUI.hpp>
+// #include <Backend/GLFW-OpenGL3.hpp>
+
+#define GLFW_INCLUDE_NONE
+#include <GLFW/glfw3.h>
+
 #include "rtw/matop.h"
 #include "rtw/dectree.h"
+
 
 using namespace rtw;
 
@@ -12,6 +20,8 @@ enum class Iris {
     Iris_Versicolor = 2,
     Iris_Virginica = 3,
 };
+
+
 
 int main() {
     std::vector<std::vector<float>> data;

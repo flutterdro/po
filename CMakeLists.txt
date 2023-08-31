@@ -3,6 +3,8 @@ project(prmai VERSION 0.5.0)
 
 add_subdirectory(vendor/fmt)
 
+add_subdirectory(vendor/glfw)
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED 20)
 
@@ -29,6 +31,7 @@ file(GLOB PROJECT_HEADERS src/*.h
 )
 file(GLOB PROJECT_SOURCES src/*.cpp
                           src/rtw/*.cpp
+                          vendor/glad/src/gl.c
 )
 add_executable(${PROJECT_NAME}
 ${PROJECT_SOURCES}
@@ -36,9 +39,11 @@ ${PROJECT_SOURCES}
 
 target_include_directories(${PROJECT_NAME} 
 PUBLIC vendor/fmt/include
-PUBLIC ${PROJECT_HEADERS}
+PUBLIC vendor/glfw/include
+PUBLIC vendor/glad/include
 )
 
 target_link_libraries(${PROJECT_NAME} 
 fmt
+glfw
 )

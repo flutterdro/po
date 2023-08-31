@@ -54,7 +54,7 @@ DecisionTreeClasifier::DecisionTreeClasifier(std::vector<std::vector<float>>& da
 }
 
 DecisionTreeClasifier::~DecisionTreeClasifier() {
-    //destroyTree(m_root);
+    destroyTree(m_root);
 }
 
 void DecisionTreeClasifier::destroyTree(Node* root) {
@@ -86,7 +86,6 @@ void DecisionTreeClasifier::destroyTree(Node* root) {
         return new Node(label);
     } 
     auto [split, feature_index] = parameter.value();
-    fmt::print("depth: {}, split: {}, feature: {}\n", depth, split, feature_index);
     std::vector<std::span<float>> left_child_data{};
     std::vector<std::span<float>> right_child_data{};
     for (int value = 0; value < data.size(); ++value) {
@@ -96,6 +95,7 @@ void DecisionTreeClasifier::destroyTree(Node* root) {
             right_child_data.push_back(data[value]);
         }
     }
+    std::vector<std::span<float>>().swap(data);
     Node* ret = new Node(buildTree(left_child_data, depth + 1), 
                          buildTree(right_child_data, depth + 1),
                          split, feature_index);
@@ -124,14 +124,12 @@ DecisionTreeClasifier::bestSplit(const std::vector<std::span<float>>& data) cons
             const float information_gain{
                 parent_gini - weight_left*gini(left_child) - weight_right*gini(right_child)
             };
-            //fmt::print("information gain: {}\n", information_gain);
             if (information_gain > max_information_gain) {
                 max_information_gain = information_gain;
                 ret = std::make_pair(data[split][feature], feature);
             }
         }
     }
-    fmt::print("max_information_gain: {}\n", max_information_gain);
     return ret;
 }
 
