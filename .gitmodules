@@ -11,4 +11,4 @@
 [submodule "vendor/glad"]
     path = vendor/glad
     url = https://github.com/Dav1dde/glad.git
-    branch = c
+    branch = glad2
