@@ -77,6 +77,15 @@
         "concepts": "cpp",
         "algorithm": "cpp",
         "numeric": "cpp",
-        "span": "cpp"
-    }
+        "span": "cpp",
+        "charconv": "cpp",
+        "future": "cpp",
+        "numbers": "cpp",
+        "regex": "cpp",
+        "unordered_set": "cpp",
+        "random": "cpp",
+        "filesystem": "cpp"
+    },
+
+    "cmake.buildDirectory" : "${workspaceRoot}/build/${buildType}"
 }

@@ -1,14 +1,42 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.20)
 project(prmai VERSION 0.5.0)
 
-add_subdirectory(vendor/fmt)
+add_subdirectory(vendor)
 
-add_subdirectory(vendor/glfw)
+# set(TGUI_BACKEND GLFW_OPENGL3)
+# set(TGUI_STATIC_LIBRARIES TRUE)
+# add_subdirectory(vendor/TGUI)
+# set(TGUI_DIR ${CMAKE_CURRENT_SOURCE_DIR}/vendor/TGUI)
+# find_package(TGUI REQUIRED)
 
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED 20)
+set(CMAKE_CXX_STANDARD          20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS        OFF)
 
-add_compile_options(
+
+
+file(GLOB PROJECT_HEADERS src/*.h
+                          src/rtw/*.h
+)
+file(GLOB PROJECT_SOURCES src/*.cpp
+                          src/rtw/*.cpp
+                          src/game/logic/*.cpp
+                          src/game/*.cpp
+                          src/logger/logger.cpp
+                          src/game/engine/*.cpp
+                          src/game/engine/io/*.cpp
+                          vendor/glad/src/gl.c
+
+)
+add_executable(${PROJECT_NAME}
+${PROJECT_SOURCES}
+)
+
+target_compile_definitions(${PROJECT_NAME}
+PRIVATE $<$<CONFIG:DEBUG>:DEBUG_>)
+
+target_compile_options(${PROJECT_NAME}
+PRIVATE 
      -Wall 
      -Wextra 
      -Wshadow
@@ -22,28 +50,29 @@ add_compile_options(
      -Wsign-conversion 
      -Wnull-dereference
      -Wdouble-promotion
-     #-Wformat=2
-     #-Werror
 )
-
-file(GLOB PROJECT_HEADERS src/*.h
-                          src/rtw/*.h
-)
-file(GLOB PROJECT_SOURCES src/*.cpp
-                          src/rtw/*.cpp
-                          vendor/glad/src/gl.c
-)
-add_executable(${PROJECT_NAME}
-${PROJECT_SOURCES}
-)
-
 target_include_directories(${PROJECT_NAME} 
-PUBLIC vendor/fmt/include
-PUBLIC vendor/glfw/include
-PUBLIC vendor/glad/include
+PRIVATE 
+     vendor/fmt/include
+     vendor/glfw/include
+     vendor/glad/include
+     vendor/stb
 )
+
+# target_link_libraries(tgui 
+# PUBLIC glfw)
 
 target_link_libraries(${PROJECT_NAME} 
-fmt
-glfw
+PRIVATE fmt
+PUBLIC glfw
+PRIVATE glm
+# PUBLIC tgui
 )
+
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                   COMMAND ${CMAKE_COMMAND} -E copy_directory
+                       ${CMAKE_SOURCE_DIR}/assets/ $<TARGET_FILE_DIR:${PROJECT_NAME}>/assets)
+
+
+
+

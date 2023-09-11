@@ -2,82 +2,89 @@
 #include <fstream>
 #include <sstream>
 #include <string>
-
+#include <array>
+#include <iostream>
 // #include <TGUI.hpp>
 // #include <Backend/GLFW-OpenGL3.hpp>
 
 #define GLFW_INCLUDE_NONE
+#define GLAD_DEBUG
+#include <glad/gl.h>
 #include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
 
 #include "rtw/matop.h"
 #include "rtw/dectree.h"
+#include "logger/logger.h"
+#include "game/engine/shader.h"
+#include "game/engine/texture.h"
+#include "game/engine/sprite.h"
+#include "game/engine/io/mouse.h"
+#include "game/logic/piece.h"
+#include "game/game.h"
 
 
 using namespace rtw;
 
-enum class Iris {
-    Iris_Setosa = 1,
-    Iris_Versicolor = 2,
-    Iris_Virginica = 3,
-};
-
-
 
 int main() {
-    std::vector<std::vector<float>> data;
-    if (std::ifstream fin{"../iris/train.data"}) {
-        std::string line;
-        while (getline(fin, line)) {
-            data.push_back(std::vector<float>{});
-            std::istringstream ssin(line);
-            float buff = 0;
-            while (ssin >> buff) {
-                data.back().push_back(buff);
-            }
-        }
-    } else {
-        fmt::print("failed to open file");
-    }
 
-    DecisionTreeClasifier dtree(data, 4, 0, 0);
+    if(!glfwInit()) {
+        LOG(LoggerLvl::ERROR, "Failed to initialize GLFW\n");
+        return -1;
+    } 
 
-    std::vector<std::vector<float>> test;
-    if (std::ifstream fin{"../iris/test.data"}) {
-        std::string line;
-        while (getline(fin, line)) {
-            test.push_back(std::vector<float>{});
-            std::istringstream ssin(line);
-            float buff = 0;
-            while (ssin >> buff) {
-                test.back().push_back(buff);
-            }
-        }
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+#ifdef __APPLE__
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
+#endif
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+#ifdef DEBUG_ 
+    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
+#endif
+    GLFWwindow *window = glfwCreateWindow(800, 800, "Chess", nullptr, nullptr);
+    if (!window) {
+        LOG(LoggerLvl::ERROR, "Failed to create a window\n");
+        glfwTerminate();
+        return -1;
+    }
+    glfwMakeContextCurrent(window);
+    glfwSetCursorPosCallback(window, Mouse::cursorPosCallback);
+    glfwSetScrollCallback(window, Mouse::mouseWheelCallback);
+    glfwSetMouseButtonCallback(window, Mouse::mouseButtonCallback);
+    int version = gladLoadGL(glfwGetProcAddress);
+    if (!version) {
+        LOG(LoggerLvl::ERROR, "Failed to initialiaze OpenGL context\n");
+        glfwTerminate();
+        return -1;
     } else {
-        fmt::print("failed to open file");
+        LOG(LoggerLvl::STATUS, "Loaded OpenGL {}.{}\n", 
+        GLAD_VERSION_MAJOR(version), 
+        GLAD_VERSION_MINOR(version));
     }
-    float count_right{0};
-    float count{0};
-    for (const auto& tes : test) {
-        float expected = tes.back();
-        float predicted = dtree.classify(tes);
-        fmt::print("expected: {}, predicted: {} | ", expected, predicted);
-        if (expected == predicted) {
-            ++count_right;
-            fmt::print("correct\n");
-        } else {
-            fmt::print("wrong\n");
-        }
-        ++count;
+    glViewport(0,0,800,800);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+
+    RM& rm = RM::getInstance();
+    loadResources();
+    Game chess;
+    chess.init();
+
+    while (!glfwWindowShouldClose(window)) {
+        glClear(GL_COLOR_BUFFER_BIT);
+        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        
+        chess.draw();
+        chess.update();
+        
+        glfwSwapBuffers(window);
+        glfwPollEvents();
     }
-    fmt::print("------------");
-    fmt::print("total accuracy: {}%\n", count_right/count * 100);
-    
-    // for (auto dat : data) {
-    //     for (auto da : dat) {
-    //         fmt::print("{} ", da);
-    //     }
-    //     fmt::print("\n");
-    // }
-    //fmt::print("{}\n", rtw::gini(data));
-    fmt::print("Hello world\n");
+    glfwTerminate();
+    rm.cleanUp();
+    return 0;
 }
