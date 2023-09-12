@@ -64,7 +64,7 @@ int main() {
         GLAD_VERSION_MAJOR(version), 
         GLAD_VERSION_MINOR(version));
     }
-    glViewport(0,0,800,800);
+    //glViewport(0,0,800,800);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -78,6 +78,7 @@ int main() {
         glClear(GL_COLOR_BUFFER_BIT);
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         
+        rm.getShader("board")->set("iTime", (float)glfwGetTime());
         chess.draw();
         chess.update();
         

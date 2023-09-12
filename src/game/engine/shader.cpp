@@ -13,15 +13,17 @@ std::optional<Shader> Shader::load(const char* vs_path, const char* fs_path) {
 
     int success;
     char info_log[512];
-    m_shader = glCreateProgram();
-    glAttachShader(m_shader, vs);
-    glAttachShader(m_shader, fs);
-    glLinkProgram(m_shader);
-    glGetProgramiv(m_shader, GL_LINK_STATUS, &success);
+    m_id = glCreateProgram();
+    glAttachShader(m_id, vs);
+    glAttachShader(m_id, fs);
+    glLinkProgram(m_id);
+    glGetProgramiv(m_id, GL_LINK_STATUS, &success);
     if (!success) {
-        glGetProgramInfoLog(m_shader, 512, nullptr, info_log);
+        glGetProgramInfoLog(m_id, 512, nullptr, info_log);
         LOG(LoggerLvl::ERROR, "Failed to link a program:\n{}", info_log);
-        glDeleteProgram(m_shader);
+        glDeleteProgram(m_id);
+        glDeleteShader(vs);
+        glDeleteShader(fs);
         return {};
     } else {
         LOG(LoggerLvl::STATUS, "Succesfully linked a program\n");
@@ -32,11 +34,11 @@ std::optional<Shader> Shader::load(const char* vs_path, const char* fs_path) {
 }
 
 void Shader::use() const noexcept {
-    glUseProgram(m_shader);
+    glUseProgram(m_id);
 }
 
 void Shader::cleanUp() {
-    glDeleteProgram(m_shader);
+    glDeleteProgram(m_id);
 }
 
 int Shader::compileShader(GLuint& shader, const char* path) const {
@@ -70,31 +72,35 @@ std::string Shader::loadShaderSrc(const char* path) const {
 
 void Shader::set(const std::string& name, int value) noexcept {
     use();
-    glUniform1i(glGetUniformLocation(m_shader, name.c_str()), value);
+    glUniform1i(glGetUniformLocation(m_id, name.c_str()), value);
 }
 void Shader::set(const std::string& name, float value) noexcept {
     use();
-    glUniform1f(glGetUniformLocation(m_shader, name.c_str()), value);
+    glUniform1f(glGetUniformLocation(m_id, name.c_str()), value);
 }
 void Shader::set(const std::string& name, float value_1, float value_2) noexcept {
     use();
-    glUniform2f(glGetUniformLocation(m_shader, name.c_str()), value_1, value_2);
+    glUniform2f(glGetUniformLocation(m_id, name.c_str()), value_1, value_2);
 }
 void Shader::set(const std::string& name, glm::vec2 value) noexcept {
     set(name, value.x, value.y);
 }
 void Shader::set(const std::string& name, float value_1, float value_2, float value_3) noexcept {
     use();
-    glUniform3f(glGetUniformLocation(m_shader, name.c_str()), value_1, value_2, value_3);
+    glUniform3f(glGetUniformLocation(m_id, name.c_str()), value_1, value_2, value_3);
 }
 void Shader::set(const std::string& name, glm::vec3 value) noexcept {
     set(name, value.x, value.y, value.z);
 }
 void Shader::set(const std::string& name, glm::mat3 value) noexcept {
     use();
-    glUniformMatrix3fv(glGetUniformLocation(m_shader, name.c_str()), 1, GL_FALSE, glm::value_ptr(value));
+    glUniformMatrix3fv(glGetUniformLocation(m_id, name.c_str()), 1, GL_FALSE, glm::value_ptr(value));
 }
 void Shader::set(const std::string& name, glm::mat4 value) noexcept {
     use();
-    glUniformMatrix4fv(glGetUniformLocation(m_shader, name.c_str()), 1, GL_FALSE, glm::value_ptr(value));
+    glUniformMatrix4fv(glGetUniformLocation(m_id, name.c_str()), 1, GL_FALSE, glm::value_ptr(value));
+}
+
+Shader::operator GLuint() {
+    return m_id;
 }

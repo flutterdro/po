@@ -55,3 +55,7 @@ std::optional<Texture> Texture::load(unsigned char (&data)[64]) {
 void Texture::bind() {
     glBindTexture(GL_TEXTURE_2D, m_id);
 }
+
+Texture::operator GLuint() {
+    return m_id;
+}

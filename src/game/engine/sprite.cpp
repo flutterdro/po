@@ -1,7 +1,7 @@
 #include "sprite.h"
 
-Sprite::Sprite(Shader shader, Texture texture) 
-    : m_shader(shader), m_texture(texture) {
+Sprite Sprite::load(Shader shader) {
+    m_shader = shader;
     glGenVertexArrays(1, &m_VAO);
     glGenBuffers(1, &m_VBO);
     glGenBuffers(1, &m_EBO);
@@ -31,25 +31,26 @@ Sprite::Sprite(Shader shader, Texture texture)
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
     glBindVertexArray(0);
+    return *this;
 }
 
-void Sprite::draw(glm::vec2 pos, glm::vec2 size, float rotation) {
-    assert(glIsProgram(m_shader.m_shader));
+void Sprite::cleanUp() {
+    glDeleteBuffers(1, &m_EBO);
+    glDeleteBuffers(1, &m_VBO);
+    glDeleteVertexArrays(1, &m_VAO);
+}
+
+void Sprite::draw(Texture texture, glm::vec2 pos, glm::vec2 size, float rotation) {
+    assert(glIsProgram(m_shader));
     m_shader.use();
     glm::mat4 model = glm::mat4(1.0f);
     model = glm::translate(model, glm::vec3(pos, 0.0f));
     model = glm::scale(model, glm::vec3(size, 0.0f));
     m_shader.set("model", model);
     glActiveTexture(GL_TEXTURE0);
-    assert(glIsTexture(m_texture.m_id));
-    m_texture.bind();
+    assert(glIsTexture(texture));
+    texture.bind();
     glBindVertexArray(m_VAO);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
-}
-
-Sprite::~Sprite() {
-    glDeleteBuffers(1, &m_EBO);
-    glDeleteBuffers(1, &m_VBO);
-    glDeleteVertexArrays(1, &m_VAO);
 }

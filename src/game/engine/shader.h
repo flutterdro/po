@@ -29,11 +29,13 @@ public:
     void use() const noexcept;
 
     void cleanUp();
+
+    operator GLuint();
 private:
     std::string loadShaderSrc(const char* path) const;
     int compileShader(GLuint& shader, const char* path) const;
 public:
-    GLuint m_shader;
+    GLuint m_id;
 };
 
 

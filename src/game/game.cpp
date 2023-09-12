@@ -2,10 +2,12 @@
 
 void loadResources() {
     RM& rm = RM::getInstance();
-    rm.loadShader("assets/shaders/main.vs", "assets/shaders/main.fs", "piece");
-    rm.loadShader("assets/shaders/main.vs", "assets/shaders/board.fs", "board");
+    rm.loadShader("shaders/main.vs", "shaders/main.fs", "piece");
+    rm.loadShader("shaders/main.vs", "shaders/board.fs", "board");
     rm.loadTexture("assets/chess-sprites/ready/pawn_b.png", "black-pawn");
     rm.loadTexture("assets/chess-sprites/ready/pawn_w.png", "white-pawn");
+    rm.loadSprite(*rm.getShader("piece"), "piece");
+    rm.loadSprite(*rm.getShader("board"), "board");
     unsigned char data[64];
     for (int i = 0; i < 64; ++i) {
         //those warnings JUST WON"T SHUTUP
@@ -14,21 +16,33 @@ void loadResources() {
     rm.loadTexture(data, "board");
 }
 
-
-Game::Game() 
-    : m_board_sprite(*RM::getInstance().getShader("board"),
-                     *RM::getInstance().getTexture("board")) {
+void Game::init() {
     for (auto& row : m_board) {
         for (auto& cell : row) {
             cell = nullptr;
         }
     }
-    m_board[0][1] = new Knight(0, 0, 1);
-    m_board[0][6] = new Knight(0, 0, 6);
+    m_piece_ptr_owner.push_back(m_board[0][1] = new Knight(0, 0, 1));
+    m_piece_ptr_owner.push_back(m_board[0][6] = new Knight(0, 0, 6));
+    m_piece_ptr_owner.push_back(m_board[7][1] = new Knight(1, 7, 1));
+    m_piece_ptr_owner.push_back(m_board[7][6] = new Knight(1, 7, 6));
+    m_piece_ptr_owner.push_back(m_board[0][2] = new Bishop(0, 0, 2));
+    m_piece_ptr_owner.push_back(m_board[0][5] = new Bishop(0, 0, 5));
+    m_piece_ptr_owner.push_back(m_board[7][2] = new Bishop(1, 7, 2));
+    m_piece_ptr_owner.push_back(m_board[7][5] = new Bishop(1, 7, 5));
+
+    RM& rm = RM::getInstance();
+    update_b(m_board);
+    glm::mat4 projection = glm::ortho(0.0f, 800.0f, 800.0f, 0.0f, -1.0f, 1.0f);
+    m_board_sprite = *rm.getSprite("board");
+    m_board_texture = *rm.getTexture("board");
+    rm.getShader("piece")->set("projection", projection);
+    rm.getShader("board")->set("projection", projection);
+
 }
 
 void Game::draw() {
-    m_board_sprite.draw({400.0f, 400.0f}, {400.0f, 400.0f});
+    m_board_sprite.draw(m_board_texture, {400.0f, 400.0f}, {400.0f, 400.0f});
     for (size_t row = 0; row < m_board.size(); ++row) {
         for (size_t col = 0; col < m_board[0].size(); ++col) {
             if (m_board[row][col] != nullptr) {
@@ -56,29 +70,15 @@ void Game::update() {
         click = false;
     }
     if (thinking && click) {
-        if (m_board[thinking_row][thinking_col]->isLegalMove({row, col})) {
-            fmt::print("Went into unthinking mode\n");
-            m_board[thinking_row][thinking_col]->move(row, col, m_board);
-            thinking = false;
-            update_b(m_board);
-        }
+        fmt::print("Went into unthinking mode\n");
+        m_board[thinking_row][thinking_col]->move(row, col, m_board);
+        thinking = false;
+        update_b(m_board);
     }
 }
 
-void Game::init() {
-    RM& rm = RM::getInstance();
-    update_b(m_board);
-    glm::mat4 projection = glm::ortho(0.0f, 800.0f, 800.0f, 0.0f, -1.0f, 1.0f);
-    rm.getShader("piece")->set("projection", projection);
-    rm.getShader("board")->set("projection", projection);
-}
-
 Game::~Game() {
-    for (auto& row : m_board) {
-        for (auto& cell : row) {
-            if (cell != nullptr) {
-                delete cell;
-            }
-        }
+    for (auto& piece : m_piece_ptr_owner) {
+        delete piece;
     }
 }

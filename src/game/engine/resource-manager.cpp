@@ -23,12 +23,23 @@ std::optional<Texture> RM::getTexture(const std::string& handle) const noexcept 
     }
 }
 
+std::optional<Sprite> RM::getSprite(const std::string& handle) const noexcept {
+    if (auto sprite_it = m_sprites.find(handle); sprite_it != m_sprites.end()) {
+        return sprite_it->second;
+    } else {
+        return {};
+    }
+}
+
 void RM::cleanUp() {
     for (auto [handle, shader] : m_shaders) {
         shader.cleanUp();
     }
     for (auto [handle, texture]: m_textures) {
         texture.cleanUp();
+    }
+    for (auto [handle, sprite]: m_textures) {
+        sprite.cleanUp();
     }
 }
 
@@ -63,5 +74,13 @@ void RM::loadTexture(unsigned char (&data)[64], const std::string& handle) {
         }
     } else {
         LOG(LoggerLvl::WARNING, "Failed to load a texture\n");
+    }
+}
+
+void RM::loadSprite(Shader shader, const std::string& handle) {
+    Sprite sprite = Sprite().load(shader);
+    auto [it, success] = m_sprites.insert({handle, sprite});
+    if (!success) {
+        LOG(LoggerLvl::WARNING, "Texture with a handle \"{}\" already exists", handle);
     }
 }

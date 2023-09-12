@@ -25,7 +25,7 @@ void loadResources();
 
 class Game {
 public:
-    Game();
+    Game() = default;
     void init();
     void draw();
     void update();
@@ -37,7 +37,8 @@ private:
 private:
     Board m_board;
     Sprite m_board_sprite;
-    std::vector<Piece*> piece_ptr_owner;
+    Texture m_board_texture;
+    std::vector<Piece*> m_piece_ptr_owner;
 };
 
 #endif

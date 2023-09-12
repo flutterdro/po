@@ -16,9 +16,10 @@ public:
     std::optional<Texture> load(unsigned char (&data)[64]);
     void cleanUp() noexcept;
 
+    operator GLuint();
     void bind();
-    GLuint m_id;
 private:
+    GLuint m_id;
 };
 
 #endif

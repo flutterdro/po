@@ -69,10 +69,20 @@ PRIVATE glm
 # PUBLIC tgui
 )
 
-add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+# add_custom_target(copy_shader_files
+#                   ${CMAKE_COMMAND}
+#                   -P ${CMAKE_SOURCE_DIR}/copyfiles.cmake
+#                   COMMENT "Copying Files for target: prmAI" VERBATIM 
+# )
+# add_dependencies(${PROJECT_NAME} copy_shader_files)
+add_custom_command(TARGET  ${PROJECT_NAME} POST_BUILD
                    COMMAND ${CMAKE_COMMAND} -E copy_directory
-                       ${CMAKE_SOURCE_DIR}/assets/ $<TARGET_FILE_DIR:${PROJECT_NAME}>/assets)
-
+                           ${CMAKE_SOURCE_DIR}/assets/ $<TARGET_FILE_DIR:${PROJECT_NAME}>/assets
+)
+add_custom_command(TARGET  ${PROJECT_NAME} POST_BUILD
+                   COMMAND ${CMAKE_COMMAND} -E create_symlink  
+                           ${CMAKE_SOURCE_DIR}/shaders/ $<TARGET_FILE_DIR:${PROJECT_NAME}>/shaders
+)
 
 
 
