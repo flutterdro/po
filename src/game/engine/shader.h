@@ -14,31 +14,34 @@
 #include "../../logger/logger.h"
 
 class Shader {
-public:
-    std::optional<Shader> load(const char* vs_path, const char* fs_path);
+  public:
+    std::optional<Shader> load(char const * vs_path, char const * fs_path);
 
-    void set(const std::string& name, int value) noexcept;
-    void set(const std::string& name, float value) noexcept;
-    void set(const std::string& name, float value_1, float value_2) noexcept;
-    void set(const std::string& name, float value_1, float value_2, float value_3) noexcept;
-    void set(const std::string& name, glm::vec2 value) noexcept;
-    void set(const std::string& name, glm::vec3 value) noexcept;
-    void set(const std::string& name, glm::mat3 value) noexcept;
-    void set(const std::string& name, glm::mat4 value) noexcept;
+    void set(std::string const& name, int value) noexcept;
+    void set(std::string const& name, float value) noexcept;
+    void set(std::string const& name, float value_1, float value_2) noexcept;
+    void set(std::string const& name, float value_1, float value_2,
+             float value_3) noexcept;
+    template<GLsizei size>
+    void set(std::string const& name, int const (&arr)[size]) {
+        use();
+        glUniform1iv(glGetUniformLocation(m_id, name.c_str()), size, arr);
+    }
+    void set(std::string const& name, glm::vec2 value) noexcept;
+    void set(std::string const& name, glm::vec3 value) noexcept;
+    void set(std::string const& name, glm::mat3 value) noexcept;
+    void set(std::string const& name, glm::mat4 value) noexcept;
 
     void use() const noexcept;
 
     void cleanUp();
 
     operator GLuint();
-private:
-    std::string loadShaderSrc(const char* path) const;
-    int compileShader(GLuint& shader, const char* path) const;
-public:
+  private:
+    std::string loadShaderSrc(char const * path) const;
+    int compileShader(GLuint& shader, char const * path) const;
+  public:
     GLuint m_id;
 };
-
-
-
 
 #endif

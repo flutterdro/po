@@ -1,7 +1,8 @@
 #include "logger.h"
 
-void vlog(LoggerLvl lvl, const char* file, int line, fmt::string_view format, fmt::format_args args) {
-    switch(lvl) {
+void vlog(LoggerLvl lvl, char const * file, int line, fmt::string_view format,
+          fmt::format_args args) {
+    switch (lvl) {
     case LoggerLvl::STATUS:
         fmt::print("[STATUS]");
         break;

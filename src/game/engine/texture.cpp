@@ -1,18 +1,15 @@
 #include "texture.h"
 
+void Texture::cleanUp() noexcept { glDeleteTextures(1, &m_id); }
 
-void Texture::cleanUp() noexcept {
-    glDeleteTextures(1, &m_id);
-}
-
-std::optional<Texture> Texture::load(const char* path) {
+std::optional<Texture> Texture::load(char const* path) {
     stbi_set_flip_vertically_on_load(!true);
     glGenTextures(1, &m_id);
     int width, height, nr_channels;
     unsigned char* data = stbi_load(path, &width, &height, &nr_channels, 0);
     GLenum color_mode;
     switch (nr_channels) {
-    case 1: 
+    case 1:
         color_mode = GL_RED;
         break;
     case 4:
@@ -24,7 +21,8 @@ std::optional<Texture> Texture::load(const char* path) {
     if (data) {
         glBindTexture(GL_TEXTURE_2D, m_id);
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA,
+                     GL_UNSIGNED_BYTE, data);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
         glGenerateMipmap(GL_TEXTURE_2D);
@@ -45,17 +43,14 @@ std::optional<Texture> Texture::load(unsigned char (&data)[64]) {
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, 8, 8, 0, GL_RED, GL_UNSIGNED_BYTE, data);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, 8, 8, 0, GL_RED, GL_UNSIGNED_BYTE,
+                 data);
     glGenerateMipmap(GL_TEXTURE_2D);
     return *this;
 }
 
-void Texture::bind() {
-    glBindTexture(GL_TEXTURE_2D, m_id);
-}
+void Texture::bind() { glBindTexture(GL_TEXTURE_2D, m_id); }
 
-Texture::operator GLuint() {
-    return m_id;
-}
+Texture::operator GLuint() { return m_id; }

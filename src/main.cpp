@@ -23,16 +23,13 @@
 #include "game/logic/piece.h"
 #include "game/game.h"
 
-
 using namespace rtw;
 
-
 int main() {
-
-    if(!glfwInit()) {
+    if (!glfwInit()) {
         LOG(LoggerLvl::ERROR, "Failed to initialize GLFW\n");
         return -1;
-    } 
+    }
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -41,10 +38,10 @@ int main() {
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
 #endif
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-#ifdef DEBUG_ 
+#ifdef DEBUG_
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
 #endif
-    GLFWwindow *window = glfwCreateWindow(800, 800, "Chess", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(800, 800, "Chess", nullptr, nullptr);
     if (!window) {
         LOG(LoggerLvl::ERROR, "Failed to create a window\n");
         glfwTerminate();
@@ -60,14 +57,12 @@ int main() {
         glfwTerminate();
         return -1;
     } else {
-        LOG(LoggerLvl::STATUS, "Loaded OpenGL {}.{}\n", 
-        GLAD_VERSION_MAJOR(version), 
-        GLAD_VERSION_MINOR(version));
+        LOG(LoggerLvl::STATUS, "Loaded OpenGL {}.{}\n",
+            GLAD_VERSION_MAJOR(version), GLAD_VERSION_MINOR(version));
     }
-    //glViewport(0,0,800,800);
+    // glViewport(0,0,800,800);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
 
     RM& rm = RM::getInstance();
     loadResources();
@@ -77,11 +72,11 @@ int main() {
     while (!glfwWindowShouldClose(window)) {
         glClear(GL_COLOR_BUFFER_BIT);
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        
+
         rm.getShader("board")->set("iTime", (float)glfwGetTime());
         chess.draw();
         chess.update();
-        
+
         glfwSwapBuffers(window);
         glfwPollEvents();
     }

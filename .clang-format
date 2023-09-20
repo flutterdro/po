@@ -1,0 +1,64 @@
+BasedOnStyle: Google
+IndentAccessModifiers: false
+AccessModifierOffset: -4
+Language: Cpp
+Standard: Latest
+Cpp11BracedListStyle: true
+AlignAfterOpenBracket: Align
+AlignArrayOfStructures: Right
+AlignConsecutiveAssignments:
+    Enabled: true
+    AcrossEmptyLines: true
+    AcrossComments: false
+AlignEscapedNewlines: Left
+AlignOperands: Align
+AllowShortBlocksOnASingleLine: Always
+AllowShortEnumsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: All
+AllowShortIfStatementsOnASingleLine: WithoutElse
+AllowShortLambdasOnASingleLine: All
+AlwaysBreakTemplateDeclarations: Yes
+BreakBeforeBinaryOperators: None
+BreakBeforeBraces: Attach
+BreakBeforeConceptDeclarations: Always
+BreakBeforeTernaryOperators: false
+BreakConstructorInitializers: BeforeColon
+BreakStringLiterals: true
+EmptyLineBeforeAccessModifier: Never
+IndentCaseBlocks: false
+IndentCaseLabels: false
+IndentRequiresClause: false
+IndentWidth: 4
+IntegerLiteralSeparator:
+  Binary: 8
+  Decimal: 3
+  Hex: -1
+PointerAlignment: Left
+QualifierAlignment: Custom
+QualifierOrder: ['inline', 'static', 'constexpr', 'type', 'const', 'volatile' ]
+ReferenceAlignment: Left
+RemoveBracesLLVM: false
+RequiresClausePosition: OwnLine
+RequiresExpressionIndentation: OuterScope
+SortIncludes: Never
+SpaceAfterLogicalNot: false
+SpaceAfterTemplateKeyword: false
+SpaceAroundPointerQualifiers: Default
+SpaceBeforeAssignmentOperators: true
+SpaceBeforeCaseColon: false
+SpaceBeforeInheritanceColon: true
+SpaceBeforeParens: true
+SpaceBeforeParens: Custom
+SpaceBeforeParensOptions:
+    AfterControlStatements: true
+    AfterForeachMacros: true
+    AfterFunctionDeclarationName: false
+    AfterIfMacros: true
+    AfterOverloadedOperator: false
+    AfterRequiresInClause: true
+    AfterRequiresInExpression: false
+SpaceBeforeRangeBasedForLoopColon: true
+SpaceBeforeSquareBrackets: false
+SpaceInEmptyBlock: false
+SpacesInAngles: Never
+SpacesInSquareBrackets: false

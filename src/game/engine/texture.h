@@ -9,16 +9,16 @@
 #include "../../logger/logger.h"
 
 class Texture {
-public:
+  public:
     Texture() = default;
 
-    std::optional<Texture> load(const char* path);
+    std::optional<Texture> load(char const * path);
     std::optional<Texture> load(unsigned char (&data)[64]);
     void cleanUp() noexcept;
 
     operator GLuint();
     void bind();
-private:
+  private:
     GLuint m_id;
 };
 

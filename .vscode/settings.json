@@ -84,8 +84,10 @@
         "regex": "cpp",
         "unordered_set": "cpp",
         "random": "cpp",
-        "filesystem": "cpp"
+        "filesystem": "cpp",
+        "ranges": "cpp",
+        "functional": "cpp"
     },
-
-    "cmake.buildDirectory" : "${workspaceRoot}/build/${buildType}"
+    "cmake.buildDirectory": "${workspaceRoot}/build/${buildType}",
+    "editor.formatOnSave": true
 }

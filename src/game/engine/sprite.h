@@ -9,14 +9,15 @@
 #include "texture.h"
 
 class Sprite {
-public:
+  public:
     Sprite() = default;
 
     Sprite load(Shader shader);
     void cleanUp();
 
-    void draw(Texture texture, glm::vec2 pos, glm::vec2 size = glm::vec2(70.0f, 70.0f), float rotation = 0.0f);
-private:
+    void draw(Texture texture, glm::vec2 pos,
+              glm::vec2 size = glm::vec2(50.0f, 50.0f), float rotation = 0.0f);
+  private:
     GLuint m_VAO;
     GLuint m_VBO;
     GLuint m_EBO;

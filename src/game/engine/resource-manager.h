@@ -10,24 +10,29 @@
 #include "texture.h"
 #include "sprite.h"
 
-//singleton pattern 
-//potential issue with destruction order fiasco
+// singleton pattern
+// potential issue with destruction order fiasco
 class RM {
-private:
+  private:
     RM();
-public:
-    RM(const RM&) = delete;
+  public:
+    RM(const RM&)           = delete;
     RM operator=(const RM&) = delete;
-    [[nodiscard]]static RM& getInstance();
-    void loadShader(const char* vs_path, const char* fs_path, const std::string& handle);
-    void loadTexture(const char* path, const std::string& handle);
-    void loadTexture(unsigned char (&data)[64], const std::string& handle);
-    void loadSprite(Shader shader, const std::string& handle);
-    [[nodiscard]]std::optional<Shader> getShader(const std::string& handle) const noexcept;
-    [[nodiscard]]std::optional<Texture> getTexture(const std::string& handle) const noexcept;
-    [[nodiscard]]std::optional<Sprite> getSprite(const std::string& handle) const noexcept;
+    [[nodiscard]] static auto getInstance() //
+        -> RM&;
+    void loadShader(char const * vs_path, char const * fs_path,
+                    std::string const& handle);
+    void loadTexture(char const * path, std::string const& handle);
+    void loadTexture(unsigned char (&data)[64], std::string const& handle);
+    void loadSprite(Shader shader, std::string const& handle);
+    [[nodiscard]] auto getShader(std::string const& handle) const noexcept //
+        -> std::optional<Shader>;
+    [[nodiscard]] auto getTexture(std::string const& handle) const noexcept //
+        -> std::optional<Texture>;
+    [[nodiscard]] auto getSprite(std::string const& handle) const noexcept //
+        -> std::optional<Sprite>;
     void cleanUp();
-private:
+  private:
     std::unordered_map<std::string, Shader> m_shaders;
     std::unordered_map<std::string, Texture> m_textures;
     std::unordered_map<std::string, Sprite> m_sprites;
