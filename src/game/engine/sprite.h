@@ -7,6 +7,7 @@
 
 #include "shader.h"
 #include "texture.h"
+#include "../utilities/rectangle.h"
 
 class Sprite {
   public:
@@ -15,8 +16,7 @@ class Sprite {
     Sprite load(Shader shader);
     void cleanUp();
 
-    void draw(Texture texture, glm::vec2 pos,
-              glm::vec2 size = glm::vec2(50.0f, 50.0f), float rotation = 0.0f);
+    void draw(Texture texture, Rectangle const& rect);
   private:
     GLuint m_VAO;
     GLuint m_VBO;

@@ -23,9 +23,9 @@ vec4 scanlines(in vec2 pos, in vec4 col) {
 
 vec4 drawCircle(in vec2 pos, in int crow, in int ccol, in vec4 color) {
     vec2 res    = vec2(800.0, 800.0);
-    vec2 center = vec2((ccol - 3.5), (crow - 3.5)) / 4.0;
+    vec2 center = vec2(ccol + 0.5, crow + 0.5) / 8.0;
     vec3 colorc = vec3(1.0);
-    if (distance(center, pos) < 1.0 / 16.0) { colorc = vec3(0.5); }
+    if (distance(center, pos) < 1.0 / 27.0) { colorc = vec3(0.5); }
     return vec4(color.rgb * colorc, 1.0);
 }
 

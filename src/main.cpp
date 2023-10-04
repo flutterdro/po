@@ -13,6 +13,7 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 
+
 #include "rtw/matop.h"
 #include "rtw/dectree.h"
 #include "logger/logger.h"
@@ -25,7 +26,10 @@
 
 using namespace rtw;
 
-int main() {
+constexpr int width = 800;
+constexpr int height = 800;
+
+int main() try {
     if (!glfwInit()) {
         LOG(LoggerLvl::ERROR, "Failed to initialize GLFW\n");
         return -1;
@@ -41,7 +45,7 @@ int main() {
 #ifdef DEBUG_
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
 #endif
-    GLFWwindow* window = glfwCreateWindow(800, 800, "Chess", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(width, height, "Chess", nullptr, nullptr);
     if (!window) {
         LOG(LoggerLvl::ERROR, "Failed to create a window\n");
         glfwTerminate();
@@ -78,9 +82,11 @@ int main() {
         chess.update();
 
         glfwSwapBuffers(window);
-        glfwPollEvents();
+        glfwWaitEvents();
     }
     glfwTerminate();
     rm.cleanUp();
     return 0;
+} catch (std::exception& e) {
+    fmt::print("{}\n", e.what());
 }

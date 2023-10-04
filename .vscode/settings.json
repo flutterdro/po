@@ -86,8 +86,10 @@
         "random": "cpp",
         "filesystem": "cpp",
         "ranges": "cpp",
-        "functional": "cpp"
+        "functional": "cpp",
+        "iterator": "cpp"
     },
     "cmake.buildDirectory": "${workspaceRoot}/build/${buildType}",
-    "editor.formatOnSave": true
+    "editor.formatOnSave": false,
+    "C_Cpp.errorSquiggles": "disabled"
 }

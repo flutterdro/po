@@ -46,38 +46,19 @@ auto Piece::isLegalMove(Square square) const noexcept -> bool {
 
 void Piece::setPos(Square pos) { m_current = pos; }
 
-// void update_b(Board& board) {
-//     auto is_not_nullptr = [](auto const ptr) { return ptr != nullptr; };
-//     for (int row = 0; row < 8; ++row) {
-//         for (int col = 0; col < 8; ++col) {
-//             Piece* piece = board[row][col];
-//             if (piece) {
-//                 piece->setPos({row, col});
-//                 piece->updateLegalMoves(board);
-//             }
-//         }
-//     }
-// }
-
-// void Piece::move(Square to_pos, Board& board) {
-//     board[m_current.row][m_current.col] = nullptr;
-//     board[to_pos.row][to_pos.col]       = this;
-//     m_current                           = to_pos;
-// }
 
 void Piece::draw(float pos_x, float pos_y) {
     RM& rm      = RM::getInstance();
     auto shader = *rm.getShader("piece");
-    if (m_is_white) {
-        shader.set("white", 1);
-    } else {
-        shader.set("white", 0);
-    }
-    m_sprite.draw(m_texture, {pos_x, pos_y});
+    shader.set("white", m_is_white);
+    m_sprite.draw(m_texture, {.tlc_pos = {pos_x, pos_y},
+                              .size = {100.0f, 100.0f}});
 }
 
 Knight::Knight(bool is_white, Square initial_pos)
     : Piece(is_white, initial_pos, "knight") {}
+
+auto Knight::clone() const -> Piece* { return new Knight(*this); }
 
 [[nodiscard]] auto Knight::type() const noexcept -> PieceType {
     return PieceType::Knight;
@@ -88,7 +69,7 @@ void Knight::updatePseudoLegalMoves(BitBoard white_pos, BitBoard black_pos) {
     m_p_legal_moves.reset();
     m_attacked_squares.reset();
     auto checkMove = [&](Square square) {
-        if (!square.isOutOfBounds()) {
+        if (not square.isOutOfBounds()) {
             if (m_is_white && !white_pos.test(square)) {
                 m_p_legal_moves.set(square);
             } else if (!m_is_white && !black_pos.test(square)) {
@@ -110,6 +91,8 @@ void Knight::updatePseudoLegalMoves(BitBoard white_pos, BitBoard black_pos) {
 Bishop::Bishop(bool is_white, Square initial_pos)
     : Piece(is_white, initial_pos, "bishop") {}
 
+auto Bishop::clone() const -> Piece* { return new Bishop(*this); }
+
 [[nodiscard]] auto Bishop::type() const noexcept -> PieceType {
     return PieceType::Bishop;
 }
@@ -123,10 +106,7 @@ void Bishop::updatePseudoLegalMoves(BitBoard white_pos, BitBoard black_pos) {
         if (square.isOutOfBounds()) { return false; }
         m_attacked_squares.set(square);
         if ((white_pos | black_pos).test(square)) {
-            if ((!m_is_white && white_pos.test(square)) ||
-                (m_is_white && black_pos.test(square))) {
-                m_p_legal_moves.set(square);
-            }
+            m_p_legal_moves.set(square);
             return false;
         }
         m_p_legal_moves.set(square);
@@ -136,10 +116,17 @@ void Bishop::updatePseudoLegalMoves(BitBoard white_pos, BitBoard black_pos) {
     for (int i = 1; check_move({m_row - i, m_col - i}); ++i) {}
     for (int i = 1; check_move({m_row - i, m_col + i}); ++i) {}
     for (int i = 1; check_move({m_row + i, m_col - i}); ++i) {}
+    if (m_is_white) {
+        m_p_legal_moves &= ~white_pos;
+    } else {
+        m_p_legal_moves &= ~black_pos;
+    }
 }
 
 Rook::Rook(bool is_white, Square initial_pos)
     : Piece(is_white, initial_pos, "rook") {}
+
+auto Rook::clone() const -> Piece* { return new Rook(*this); }
 
 auto Rook::type() const noexcept -> PieceType { return PieceType::Rook; }
 
@@ -152,10 +139,7 @@ void Rook::updatePseudoLegalMoves(BitBoard white_pos, BitBoard black_pos) {
         if (square.isOutOfBounds()) { return false; }
         m_attacked_squares.set(square);
         if ((white_pos | black_pos).test(square)) {
-            if ((!m_is_white && white_pos.test(square)) ||
-                (m_is_white && black_pos.test(square))) {
-                m_p_legal_moves.set(square);
-            }
+            m_p_legal_moves.set(square);
             return false;
         }
         m_p_legal_moves.set(square);
@@ -165,10 +149,17 @@ void Rook::updatePseudoLegalMoves(BitBoard white_pos, BitBoard black_pos) {
     for (int i = 1; check_move({m_row - i, m_col}); ++i) {}
     for (int i = 1; check_move({m_row, m_col + i}); ++i) {}
     for (int i = 1; check_move({m_row, m_col - i}); ++i) {}
+    if (m_is_white) {
+        m_p_legal_moves &= ~white_pos;
+    } else {
+        m_p_legal_moves &= ~black_pos;
+    }
 }
 
 Queen::Queen(bool is_white, Square initial_pos)
     : Piece(is_white, initial_pos, "queen") {}
+
+auto Queen::clone() const -> Piece* { return new Queen(*this); }
 
 auto Queen::type() const noexcept -> PieceType { return PieceType::Queen; }
 
@@ -181,10 +172,7 @@ void Queen::updatePseudoLegalMoves(BitBoard white_pos, BitBoard black_pos) {
         if (square.isOutOfBounds()) { return false; }
         m_attacked_squares.set(square);
         if ((white_pos | black_pos).test(square)) {
-            if ((!m_is_white && white_pos.test(square)) ||
-                (m_is_white && black_pos.test(square))) {
-                m_p_legal_moves.set(square);
-            }
+            m_p_legal_moves.set(square);
             return false;
         }
         m_p_legal_moves.set(square);
@@ -198,11 +186,18 @@ void Queen::updatePseudoLegalMoves(BitBoard white_pos, BitBoard black_pos) {
     for (int i = 1; check_move({m_row - i, m_col - i}); ++i) {}
     for (int i = 1; check_move({m_row - i, m_col + i}); ++i) {}
     for (int i = 1; check_move({m_row + i, m_col - i}); ++i) {}
+    if (m_is_white) {
+        m_p_legal_moves &= ~white_pos;
+    } else {
+        m_p_legal_moves &= ~black_pos;
+    }
     // print64(m_p_legal_moves);
 }
 
 Pawn::Pawn(bool is_white, Square initial_pos)
     : Piece(is_white, initial_pos, "pawn") {}
+
+auto Pawn::clone() const -> Piece* { return new Pawn(*this); }
 
 auto Pawn::type() const noexcept -> PieceType { return PieceType::Pawn; }
 
@@ -218,6 +213,7 @@ void Pawn::updatePseudoLegalMoves(BitBoard white_pos, BitBoard black_pos) {
                                              Square{m_row + 1, m_col + 0};
     Square const aheadx2      = m_is_white ? Square{m_row - 2, m_col + 0} :
                                              Square{m_row + 2, m_col + 0};
+    Square const initial      = m_is_white ? Square{6, 0} : Square{1, 0};
 
     if (!left.isOutOfBounds()) {
         m_attacked_squares.set(left);
@@ -233,7 +229,7 @@ void Pawn::updatePseudoLegalMoves(BitBoard white_pos, BitBoard black_pos) {
             m_p_legal_moves.set(right);
         }
     }
-    if (!aheadx2.isOutOfBounds()) {
+    if (initial.row == m_row) {
         if (!(white_pos | black_pos).test(aheadx2)) {
             m_p_legal_moves.set(aheadx2);
         }
@@ -249,6 +245,8 @@ void Pawn::updatePseudoLegalMoves(BitBoard white_pos, BitBoard black_pos) {
 
 King::King(bool is_white, Square initial_pos)
     : Piece(is_white, initial_pos, "king") {}
+
+auto King::clone() const -> Piece* { return new King(*this); }
 
 auto King::type() const noexcept -> PieceType { return PieceType::King; }
 

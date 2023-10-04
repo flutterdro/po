@@ -8,6 +8,11 @@ add_subdirectory(fmt)
 
 add_subdirectory(glm)
 
+set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
+add_subdirectory(Catch2)
+
+# add_subdirectory(freetype)
+
 # set(TGUI_BACKEND GLFW_OPENGL3)
 # set(GLFW_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/glfw/include)
 # set(GLFW_LIBRARY ${CMAKE_CURRENT_BINARY_DIR}/glfw/src/libglfw3.a)

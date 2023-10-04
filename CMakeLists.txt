@@ -3,11 +3,6 @@ project(prmai VERSION 0.5.0)
 
 add_subdirectory(vendor)
 
-# set(TGUI_BACKEND GLFW_OPENGL3)
-# set(TGUI_STATIC_LIBRARIES TRUE)
-# add_subdirectory(vendor/TGUI)
-# set(TGUI_DIR ${CMAKE_CURRENT_SOURCE_DIR}/vendor/TGUI)
-# find_package(TGUI REQUIRED)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -22,12 +17,16 @@ file(GLOB PROJECT_SOURCES src/*.cpp
      src/logger/logger.cpp
      src/game/engine/*.cpp
      src/game/engine/io/*.cpp
+     src/game/ai/*.cpp
+     src/game/ui/*.cpp
      src/game/utilities/*.cpp
      vendor/glad/src/gl.c
 )
 add_executable(${PROJECT_NAME}
      ${PROJECT_SOURCES}
 )
+
+
 
 target_compile_definitions(${PROJECT_NAME}
      PRIVATE $<$<CONFIG:DEBUG>:DEBUG_>)
@@ -37,6 +36,7 @@ target_compile_options(${PROJECT_NAME}
      -Wall
      -Wextra
      -Wshadow
+     -Wmove
      -Wnon-virtual-dtor
      -Wold-style-cast
      -Wcast-align
@@ -61,16 +61,18 @@ target_include_directories(${PROJECT_NAME}
      vendor/glad/include
      vendor/stb
 )
-
-# target_link_libraries(tgui
-# PUBLIC glfw)
 target_link_libraries(${PROJECT_NAME}
      PRIVATE fmt
      PUBLIC glfw
      PRIVATE glm
-
-     # PUBLIC tgui
+     PRIVATE Catch2::Catch2WithMain
+     # PRIVATE freetype
 )
+
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/vendor/Catch2/extras)
+include(CTest)
+include(Catch)
+catch_discover_tests(${PROJECT_NAME})
 
 # add_custom_target(copy_shader_files
 # ${CMAKE_COMMAND}

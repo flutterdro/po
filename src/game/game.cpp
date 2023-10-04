@@ -26,30 +26,7 @@ auto loadResources() -> void {
 }
 
 auto Game::init() -> void {
-    m_piece_ptr_owner.reserve(32);
-    m_piece_ptr_owner.push_back(m_board[{0, 1}] = new Knight(0, {0, 1}));
-    m_piece_ptr_owner.push_back(m_board[{0, 6}] = new Knight(0, {0, 6}));
-    m_piece_ptr_owner.push_back(m_board[{7, 1}] = new Knight(1, {7, 1}));
-    m_piece_ptr_owner.push_back(m_board[{7, 6}] = new Knight(1, {7, 6}));
-    m_piece_ptr_owner.push_back(m_board[{0, 2}] = new Bishop(0, {0, 2}));
-    m_piece_ptr_owner.push_back(m_board[{0, 5}] = new Bishop(0, {0, 5}));
-    m_piece_ptr_owner.push_back(m_board[{7, 2}] = new Bishop(1, {7, 2}));
-    m_piece_ptr_owner.push_back(m_board[{7, 5}] = new Bishop(1, {7, 5}));
-    m_piece_ptr_owner.push_back(m_board[{0, 0}] = new Rook(0, {0, 0}));
-    m_piece_ptr_owner.push_back(m_board[{0, 7}] = new Rook(0, {0, 7}));
-    m_piece_ptr_owner.push_back(m_board[{7, 0}] = new Rook(1, {7, 0}));
-    m_piece_ptr_owner.push_back(m_board[{7, 7}] = new Rook(1, {7, 7}));
-    m_piece_ptr_owner.push_back(m_board[{0, 4}] = new Queen(0, {0, 4}));
-    m_piece_ptr_owner.push_back(m_board[{7, 3}] = new Queen(1, {7, 3}));
-    m_piece_ptr_owner.push_back(m_board[{0, 3}] = new King(0, {0, 3}));
-    white_king_pos = {7, 4};
-    m_piece_ptr_owner.push_back(m_board[{7, 4}] = new King(1, {7, 4}));
-    black_king_pos = {0, 3};
-
-    for (int i = 0; i < 8; ++i) {
-        m_piece_ptr_owner.push_back(m_board[{1, i}] = new Pawn(0, {1, i}));
-        m_piece_ptr_owner.push_back(m_board[{6, i}] = new Pawn(1, {6, i}));
-    }
+    
 
     RM& rm = RM::getInstance();
     m_board.pseudoUpdate();
@@ -61,13 +38,10 @@ auto Game::init() -> void {
 }
 
 auto Game::draw() -> void {
-    RM& rm              = RM::getInstance();
-    auto is_not_nullptr = [](auto const ptr) { return ptr != nullptr; };
-    auto [white_coverage, black_coverage] = m_board.getCoverage();
+    RM& rm = RM::getInstance();
 
     if (auto shader = *rm.getShader("board"); is_piece_selected) {
-        auto [s_row, s_col] = selected_square;
-        BitBoard board      = m_board[selected_square]->getPseudoLegalMoves();
+        BitBoard board = m_board[selected_square]->getPseudoLegalMoves();
         int arr[64];
         for (int i = 0; i < 64; ++i) { arr[i] = board.test({i / 8, i % 8}); }
         shader.set("board", arr);
@@ -76,12 +50,13 @@ auto Game::draw() -> void {
         memset(arr, 0, sizeof(int) * 64);
         shader.set("board", arr);
     }
-    m_board_sprite.draw(m_board_texture, {400.0f, 400.0f}, {400.0f, 400.0f});
+    m_board_sprite.draw(m_board_texture, {.tlc_pos = {0.0f, 0.0f},
+                                          .size = {800.0f, 800.0f}});
     for (int row = 0; row < 8; ++row) {
         for (int col = 0; col < 8; ++col) {
             if (m_board[{row, col}] != nullptr) {
-                m_board[{row, col}]->draw(static_cast<float>(col * 100 + 50),
-                                          static_cast<float>(row * 100 + 50));
+                m_board[{row, col}]->draw(static_cast<float>(col * 100),
+                                          static_cast<float>(row * 100));
             }
         }
     }
@@ -102,6 +77,8 @@ auto Game::proccessClick() -> void {
     fmt::print("selected {}\n", selected_square);
     if (clicked_square.isOutOfBounds()) return;
 
+    
+
     Piece const* const clicked_piece{m_board[clicked_square]};
     if (!is_piece_selected && clicked_piece) {
         fmt::print("Went into thinking mode\n");
@@ -113,45 +90,35 @@ auto Game::proccessClick() -> void {
     }
     if (Piece * selected_piece{m_board[selected_square]}; is_piece_selected) {
         fmt::print("Went into unthinking mode\n");
+        m_board.fullValidation();
         if (selected_piece->isLegalMove(clicked_square)) {
-            Board bup_board      = m_board;
-            Square bup_wking_pos = white_king_pos;
-            Square bup_bking_pos = black_king_pos;
-            white_king_pos =
-                selected_piece->type() == PieceType::King && is_white_turn ?
-                    clicked_square :
-                    white_king_pos;
-            black_king_pos =
-                selected_piece->type() == PieceType::King && !is_white_turn ?
-                    clicked_square :
-                    black_king_pos;
             m_board.move(selected_square, clicked_square);
-            m_board.pseudoUpdate();
-            // if (validateMove(m_board)) {
-            //     is_white_turn = !is_white_turn;
-            // } else {
-            //     m_board        = bup_board;
-            //     white_king_pos = bup_wking_pos;
-            //     black_king_pos = bup_bking_pos;
-            //     m_board.pseudoUpdate();
-            // }
+            is_white_turn = !is_white_turn;
+            m_board.fullValidation();
         }
         is_piece_selected = false;
     }
 }
-auto Game::validateMove(Board const& board) -> bool {
-    auto is_not_nullptr = [](auto const ptr) { return ptr != nullptr; };
+auto Game::validateMove(Board const& board) -> bool { 
     auto const [white_coverage, black_coverage] = board.getCoverage();
     Square const attacking_king =
         is_white_turn ? white_king_pos : black_king_pos;
     BitBoard const coverage = is_white_turn ? black_coverage : white_coverage;
     return coverage.test(attacking_king);
 }
-auto Game::update() -> void {
-    proccessInput();
-    // if (is_in_check) { isCheckmate(); }
+auto Game::update() -> void { 
+    // if (not is_white_turn) {
+    //     auto [from, to] = findBestMove(m_board);
+    //     m_board.move(from, to);
+    //     m_board.pseudoUpdate();
+    //     is_white_turn = !is_white_turn;
+    // } else {
+        proccessInput(); 
+    // }
 }
 
 Game::~Game() {
     for (auto& piece : m_piece_ptr_owner) { delete piece; }
+
 }
+

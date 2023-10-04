@@ -12,11 +12,19 @@
 #include "engine/resource-manager.h"
 #include "engine/shader.h"
 #include "engine/texture.h"
+#include "ai/dumdum.h"
 #include "logic/piece.h"
 #include "logic/board.h"
+#include "ui/ui.h"
+#include "utilities/rectangle.h"
 
 auto loadResources()  //
     -> void;
+
+enum class GameState {
+    Menu,
+    Game,
+};
 
 class Game {
 public:

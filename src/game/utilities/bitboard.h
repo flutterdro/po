@@ -9,16 +9,28 @@ struct Square {
     int col;
     auto isOutOfBounds() const noexcept  //
         -> bool;
+    constexpr explicit operator int() { return row * 8 + col; }
 };
+
+using u64 = std::uint64_t;
+ 
+inline consteval auto operator ""_u64(u64 lit) -> u64 { return lit; }
 
 class BitBoard {
 public:
     BitBoard();
-    auto test(Square) const  //
+    BitBoard(u64);
+    auto test(Square) const noexcept //
         -> bool;
-    auto operator|=(uint64_t rhs)  //
+    auto operator|=(uint64_t rhs) noexcept //
         -> BitBoard;
-    auto operator|=(BitBoard rhs)  //
+    auto operator|=(BitBoard rhs) noexcept //
+        -> BitBoard;
+    auto operator~() noexcept
+        -> BitBoard;
+    auto operator&=(uint64_t rhs) noexcept //
+        -> BitBoard;
+    auto operator&=(BitBoard rhs) noexcept //
         -> BitBoard;
     auto set()  //
         -> void;
@@ -28,9 +40,12 @@ public:
         -> void;
     auto reset(Square)  //
         -> void;
+
+    auto swapBitSeq(int seq_begin1, int seq_begin2, int seq_len)
+        -> void;
     friend struct fmt::formatter<BitBoard>;
 private:
-    uint64_t m_bits;
+    u64 m_bits;
 };
 
 inline auto operator|(BitBoard lhs, BitBoard rhs) -> BitBoard {
@@ -83,7 +98,7 @@ struct formatter<BitBoard> {
     template<typename FormatContext>
     auto format(BitBoard const& v, FormatContext& ctx) {
         uint8_t arr[8];
-        uint64_t* a = new (arr) uint64_t{v.m_bits};
+        u64* a = new (arr) u64{v.m_bits};
         return format_to(
             ctx.out(),
             "{:08b}\n{:08b}\n{:08b}\n{:08b}\n{:08b}\n{:08b}\n{:08b}\n{:08b}",

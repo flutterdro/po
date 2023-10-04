@@ -23,24 +23,16 @@ enum class PieceType {
     Queen,
     Rook,
 };  // namespace fmt
-
 class Piece {
 public:
     Piece(bool is_white, Square initial_pos, char const* texture_handle);
-    /**
-     * move function is responsible ONLY for moving
-     * burden of validating the move falls onto the shoulders of user
-     */
-    // void move(Square to, Board& board);
     /*
     draw a sprite
     */
+    virtual auto clone() const //
+        -> Piece* = 0;
+
     void draw(float, float);
-    /**
-     * pure virtual function
-     * each piece generates pseudo legal moves and writes them into the 64 bit
-     * unsigned integer
-     */
     virtual void updatePseudoLegalMoves(BitBoard white_pos,
                                         BitBoard black_pos) = 0;
     [[nodiscard]] virtual auto type() const noexcept  //
@@ -88,6 +80,8 @@ protected:
 class Knight : public Piece {
 public:
     Knight(bool is_white, Square initial_pos);
+    auto clone() const 
+        -> Piece* override final;
     void updatePseudoLegalMoves(BitBoard white_pos,
                                 BitBoard black_pos) override final;
     [[nodiscard]] auto type() const noexcept  //
@@ -97,6 +91,8 @@ public:
 class Bishop : public Piece {
 public:
     Bishop(bool is_white, Square initial_pos);
+    auto clone() const 
+        -> Piece* override final;
     void updatePseudoLegalMoves(BitBoard white_pos,
                                 BitBoard black_pos) override final;
     [[nodiscard]] auto type() const noexcept  //
@@ -107,6 +103,8 @@ private:
 class Rook : public Piece {
 public:
     Rook(bool is_white, Square initial_pos);
+    auto clone() const 
+        -> Piece* override final;
     void updatePseudoLegalMoves(BitBoard white_pos,
                                 BitBoard black_pos) override final;
     [[nodiscard]] auto type() const noexcept  //
@@ -117,6 +115,8 @@ private:
 class Queen : public Piece {
 public:
     Queen(bool is_white, Square initial_pos);
+    auto clone() const 
+        -> Piece* override final;
     void updatePseudoLegalMoves(BitBoard white_pos,
                                 BitBoard black_pos) override final;
     [[nodiscard]] auto type() const noexcept  //
@@ -127,6 +127,8 @@ private:
 class Pawn : public Piece {
 public:
     Pawn(bool is_white, Square initial_pos);
+    auto clone() const 
+        -> Piece* override final;
     void updatePseudoLegalMoves(BitBoard white_pos,
                                 BitBoard black_pos) override final;
     [[nodiscard]] auto type() const noexcept  //
@@ -136,6 +138,8 @@ public:
 class King : public Piece {
 public:
     King(bool is_white, Square initial_pos);
+    auto clone() const 
+        -> Piece* override final;
     void updatePseudoLegalMoves(BitBoard white_pos,
                                 BitBoard black_pos) override final;
     [[nodiscard]] auto type() const noexcept  //
