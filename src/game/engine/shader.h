@@ -5,6 +5,7 @@
 #include <fstream>
 #include <sstream>
 #include <type_traits>
+#include <filesystem>
 
 #include <glad/gl.h>
 #include <glm/glm.hpp>
@@ -13,9 +14,16 @@
 
 #include "../../logger/logger.h"
 
+namespace fs = std::filesystem;
+
 class Shader {
-  public:
+public:
+    Shader() = default;
+    Shader(fs::path const&);
     std::optional<Shader> load(char const * vs_path, char const * fs_path);
+
+    auto create_default()
+        -> Shader;
 
     void set(std::string const& name, int value) noexcept;
     void set(std::string const& name, float value) noexcept;
@@ -34,13 +42,13 @@ class Shader {
 
     void use() const noexcept;
 
-    void cleanUp();
+    void clean_up();
 
-    operator GLuint();
-  private:
-    std::string loadShaderSrc(char const * path) const;
-    int compileShader(GLuint& shader, char const * path) const;
-  public:
+    constexpr explicit operator GLuint() const noexcept { return m_id; }
+private:
+    std::string load_shader_src(fs::path const&) const;
+    int compile_shader(GLuint shader, fs::path const&) const;
+private:
     GLuint m_id;
 };
 

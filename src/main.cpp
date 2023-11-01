@@ -1,18 +1,17 @@
-#include <fmt/core.h>
 #include <fstream>
 #include <sstream>
 #include <string>
 #include <array>
 #include <iostream>
-// #include <TGUI.hpp>
-// #include <Backend/GLFW-OpenGL3.hpp>
 
 #define GLFW_INCLUDE_NONE
-#define GLAD_DEBUG
+#ifdef DEBUG_
+#   define GLAD_DEBUG
+#endif
 #include <glad/gl.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
-
+#include <fmt/core.h>
 
 #include "rtw/matop.h"
 #include "rtw/dectree.h"
@@ -26,67 +25,37 @@
 
 using namespace rtw;
 
-constexpr int width = 800;
-constexpr int height = 800;
 
 int main() try {
     if (!glfwInit()) {
-        LOG(LoggerLvl::ERROR, "Failed to initialize GLFW\n");
+        log(LogLvl::ERROR, "Failed to initialize GLFW\n");
         return -1;
     }
-
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-#ifdef __APPLE__
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
-#endif
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-#ifdef DEBUG_
-    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
-#endif
-    GLFWwindow* window = glfwCreateWindow(width, height, "Chess", nullptr, nullptr);
-    if (!window) {
-        LOG(LoggerLvl::ERROR, "Failed to create a window\n");
-        glfwTerminate();
-        return -1;
-    }
-    glfwMakeContextCurrent(window);
-    glfwSetCursorPosCallback(window, Mouse::cursorPosCallback);
-    glfwSetScrollCallback(window, Mouse::mouseWheelCallback);
-    glfwSetMouseButtonCallback(window, Mouse::mouseButtonCallback);
-    int version = gladLoadGL(glfwGetProcAddress);
-    if (!version) {
-        LOG(LoggerLvl::ERROR, "Failed to initialiaze OpenGL context\n");
+    Window window(800, 600, "Chess");
+    window.make_context_current();
+    window.setup_mouse_callbacks(Mouse{});
+    if (int version = gladLoadGL(glfwGetProcAddress); not version) {
+        log(LogLvl::ERROR, "Failed to initialiaze OpenGL context\n");
         glfwTerminate();
         return -1;
     } else {
-        LOG(LoggerLvl::STATUS, "Loaded OpenGL {}.{}\n",
+        log(LogLvl::STATUS, "Loaded OpenGL {}.{}\n",
             GLAD_VERSION_MAJOR(version), GLAD_VERSION_MINOR(version));
     }
-    // glViewport(0,0,800,800);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    RM& rm = RM::getInstance();
+    compile_shaders();
     loadResources();
-    Game chess;
-    chess.init();
+    Game chess(window);
 
-    while (!glfwWindowShouldClose(window)) {
-        glClear(GL_COLOR_BUFFER_BIT);
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-
-        rm.getShader("board")->set("iTime", (float)glfwGetTime());
-        chess.draw();
+    while (window.is_open()) {
         chess.update();
+        chess.draw();
 
-        glfwSwapBuffers(window);
-        glfwWaitEvents();
+        window.update();
     }
     glfwTerminate();
-    rm.cleanUp();
     return 0;
+} catch (std::system_error& e) {
+    fmt::print(stderr, "{}", e.code().message());
 } catch (std::exception& e) {
     fmt::print("{}\n", e.what());
 }

@@ -1,7 +1,6 @@
 #include "sprite.h"
 
-Sprite Sprite::load(Shader shader) {
-    m_shader = shader;
+VAO::VAO() {
     glGenVertexArrays(1, &m_VAO);
     glGenBuffers(1, &m_VBO);
     glGenBuffers(1, &m_EBO);
@@ -29,33 +28,44 @@ Sprite Sprite::load(Shader shader) {
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float),
                           (void *)(2 * sizeof(float)));
     glBindVertexArray(0);
-    return *this;
 }
 
-void Sprite::cleanUp() {
+void VAO::clean_up() {
     glDeleteBuffers(1, &m_EBO);
     glDeleteBuffers(1, &m_VBO);
     glDeleteVertexArrays(1, &m_VAO);
 }
 
-void Sprite::draw(Texture texture, Rectangle const& rect) {
-    assert(glIsProgram(m_shader));
+void VAO::draw() {
+    glBindVertexArray(m_VAO);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+}
+
+Sprite::Sprite(VAO vao, Shader shader, Texture texture) 
+    : m_vao(vao), m_shader(shader), m_texture(texture) {}
+
+auto Sprite::draw(ItemFrame const& rect)
+    -> void {
+    assert(glIsProgram((GLuint)m_shader));
     m_shader.use();
+
     glm::mat4 model = glm::mat4(1.0f);
-    model           = glm::translate(model, glm::vec3(rect.tlc_pos, 0.0f));
-    
-    if (rect.angle) {
+    model = glm::translate(model, glm::vec3(rect.tlc_pos, 0.0f));
+    if (fcomp(rect.angle, 0.0f)) {
         model = glm::translate(model, glm::vec3(0.5f * rect.size, 0.0f)); 
         model = glm::rotate(model, glm::radians(rect.angle), glm::vec3(0.0f, 0.0f, 1.0f)); 
         model = glm::translate(model, glm::vec3(-0.5f * rect.size, 0.0f));
     }
-
-    model           = glm::scale(model, glm::vec3(rect.size, 0.0f));
+    model = glm::scale(model, glm::vec3(rect.size, 0.0f));
     m_shader.set("model", model);
+    assert(glIsTexture((GLuint)m_texture));
     glActiveTexture(GL_TEXTURE0);
-    assert(glIsTexture(texture));
-    texture.bind();
-    glBindVertexArray(m_VAO);
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-    glBindVertexArray(0);
+    m_texture.bind();
+    m_vao.draw();
+}
+
+auto Sprite::get_shader() const noexcept
+    -> Shader {
+    return m_shader;
 }

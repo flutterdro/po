@@ -2,7 +2,7 @@
 
 void Texture::cleanUp() noexcept { glDeleteTextures(1, &m_id); }
 
-std::optional<Texture> Texture::load(char const* path) {
+std::optional<Texture> Texture::load_image(char const* path) {
     stbi_set_flip_vertically_on_load(!true);
     glGenTextures(1, &m_id);
     int width, height, nr_channels;
@@ -29,7 +29,7 @@ std::optional<Texture> Texture::load(char const* path) {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     } else {
-        LOG(LoggerLvl::WARNING, "Failed to load a texture:{}\n", path);
+        log(LogLvl::WARNING, "Failed to load a texture:{}\n", path);
         stbi_image_free(data);
         return {};
     }

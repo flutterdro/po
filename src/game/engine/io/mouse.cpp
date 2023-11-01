@@ -75,7 +75,7 @@ double Mouse::getScrollDy() noexcept {
 bool Mouse::button(int button) { return m_buttons[button]; }
 
 bool Mouse::buttonChanged(int button) {
-    bool ret                  = m_buttons_changed[button];
+    bool ret = m_buttons_changed[button];
     m_buttons_changed[button] = false;
     return ret;
 }

@@ -9,11 +9,7 @@
 
 #include <fmt/format.h>
 
-namespace rtw {
-enum class NodeType {
-    Branch,
-    Leaf
-};
+// namespace rtw {
 namespace {
 class Node {
 public:
@@ -56,6 +52,6 @@ private:
 float gini(const std::vector<std::span<float>>&);
 
 
-}
+// }
 
 #endif

@@ -9,19 +9,35 @@
 #include "texture.h"
 #include "../utilities/rectangle.h"
 
-class Sprite {
+/**
+ * @brief simple VAO wrapper
+ */
+class VAO {
   public:
-    Sprite() = default;
+	VAO();
 
-    Sprite load(Shader shader);
-    void cleanUp();
+	void clean_up();
 
-    void draw(Texture texture, Rectangle const& rect);
+	void draw();
   private:
-    GLuint m_VAO;
-    GLuint m_VBO;
-    GLuint m_EBO;
-    Shader m_shader;
+	GLuint m_VAO;
+	GLuint m_VBO;
+	GLuint m_EBO;
+};
+
+class Sprite {
+public:
+	Sprite() = default;
+	Sprite(VAO vao, Shader shader, Texture texture);
+
+	auto draw(ItemFrame const&)
+		-> void;
+	auto get_shader() const noexcept
+		-> Shader;
+private:
+	VAO m_vao;
+	Shader m_shader;
+	Texture m_texture;
 };
 
 #endif

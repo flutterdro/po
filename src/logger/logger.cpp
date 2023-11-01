@@ -1,18 +1,22 @@
 #include "logger.h"
 
-void vlog(LoggerLvl lvl, char const * file, int line, fmt::string_view format,
+void vlog(LogLvl lvl, source_location const& loc, fmt::string_view format,
           fmt::format_args args) {
+    fs::path file_name{loc.file_name()};
     switch (lvl) {
-    case LoggerLvl::STATUS:
-        fmt::print("[STATUS]");
+    case LogLvl::STATUS:
+        fmt::print("[STATUS] ");
+        fmt::vprint(format, args);
         break;
-    case LoggerLvl::WARNING:
-        fmt::print("[WARNING]");
+    case LogLvl::WARNING:
+        fmt::print("[WARNING] in {}:{}:{} in the function: {}\n   ", 
+            file_name.filename().c_str(), loc.line(), loc.column(), loc.function_name());
+        fmt::vprint(format, args);
         break;
-    case LoggerLvl::ERROR:
-        fmt::print("[ERROR]");
+    case LogLvl::ERROR:
+        fmt::print(stderr, "[ERROR] in {}:{}:{} in the function: {}\n   ", 
+            file_name.filename().c_str(), loc.line(), loc.column(), loc.function_name());
+        fmt::vprint(stderr, format, args);
         break;
     }
-    fmt::print(" In the file: {}; At the line: {}\n  ", file, line);
-    fmt::vprint(format, args);
 }

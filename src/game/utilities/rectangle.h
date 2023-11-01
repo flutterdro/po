@@ -7,14 +7,14 @@
 #include <glm/glm.hpp>
 
 template<std::floating_point T>
-auto fcomp(T a, T b) noexcept
+constexpr auto fcomp(T a, T b) noexcept
     -> bool {
     return std::fabs(a - b) < std::numeric_limits<T>::epsilon() * 
         std::fmax(std::fmax(std::fabs(b), std::fabs(a)), 1.0f);
 }
 
 
-struct Rectangle {
+struct ItemFrame {
     /**
      * @brief tlc == top-left corner
      */
@@ -33,12 +33,12 @@ struct Rectangle {
      * @brief returns true if... shouldn't it be obvious?
     */
     [[nodiscard]]
-    auto contains(glm::vec2 point) const noexcept
+    constexpr auto contains(glm::vec2 point) const noexcept
         ->bool { 
         glm::vec2 diff = point - tlc_pos;
-        return diff.x < size.x && 
-               diff.x > 0.0f   &&
-               diff.y < size.y &&
+        return diff.x < size.x and
+               diff.x > 0.0f   and
+               diff.y < size.y and
                diff.y > 0.0f; 
     }
 };

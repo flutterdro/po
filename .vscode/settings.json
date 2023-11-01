@@ -91,5 +91,6 @@
     },
     "cmake.buildDirectory": "${workspaceRoot}/build/${buildType}",
     "editor.formatOnSave": false,
-    "C_Cpp.errorSquiggles": "disabled"
+    "C_Cpp.errorSquiggles": "disabled",
+    "compilerexplorer.compilationDirectory": "${workspaceFolder}/build/Debug"
 }

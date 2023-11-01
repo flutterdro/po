@@ -12,7 +12,7 @@ class Texture {
   public:
     Texture() = default;
 
-    std::optional<Texture> load(char const * path);
+    std::optional<Texture> load_image(char const * path);
     std::optional<Texture> load(unsigned char (&data)[64]);
     void cleanUp() noexcept;
 

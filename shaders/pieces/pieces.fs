@@ -7,8 +7,8 @@ in vec2 fragPos;
 
 uniform sampler2D tex;
 
-const float PAL_LINES = 3291.0; // 576.;
-const float PAL_WIDTH = 4120.0; // 720.;
+const float PAL_LINES = 3000.0; // 576.;
+const float PAL_WIDTH = 4000.0; // 720.;
 uniform float iTime;
 uniform bool white;
 
