@@ -1,8 +1,39 @@
 #include "texture.h"
 
-void Texture::cleanUp() noexcept { glDeleteTextures(1, &m_id); }
+namespace engine {
 
-std::optional<Texture> Texture::load_image(char const* path) {
+void texture::free() noexcept { glDeleteTextures(1, &m_id); }
+
+texture::texture(char const * path) {
+    load_image(path);
+}
+texture::texture(unsigned char (&data)[64]) {
+    load(data);
+}
+
+auto texture::create_fallback() noexcept
+    -> texture {
+    GLuint id;
+    unsigned char data[64];
+        for (int i = 0; i < 64; ++i) {
+            data[i] = static_cast<unsigned char>((i + i / 8) % 2 * 0xFF);
+        }
+    glGenTextures(1, &id);
+    glBindTexture(GL_TEXTURE_2D, id);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, 8, 8, 0, GL_RED, GL_UNSIGNED_BYTE,
+                 data);
+    glGenerateMipmap(GL_TEXTURE_2D);
+    texture texture_;
+    texture_.m_id = id;
+    return texture_;
+}
+
+std::optional<texture> texture::load_image(char const* path) {
     stbi_set_flip_vertically_on_load(!true);
     glGenTextures(1, &m_id);
     int width, height, nr_channels;
@@ -37,7 +68,7 @@ std::optional<Texture> Texture::load_image(char const* path) {
     return *this;
 }
 
-std::optional<Texture> Texture::load(unsigned char (&data)[64]) {
+std::optional<texture> texture::load(unsigned char (&data)[64]) {
     glGenTextures(1, &m_id);
     glBindTexture(GL_TEXTURE_2D, m_id);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -51,6 +82,8 @@ std::optional<Texture> Texture::load(unsigned char (&data)[64]) {
     return *this;
 }
 
-void Texture::bind() { glBindTexture(GL_TEXTURE_2D, m_id); }
+void texture::bind() { glBindTexture(GL_TEXTURE_2D, m_id); }
 
-Texture::operator GLuint() { return m_id; }
+texture::operator GLuint() { return m_id; }
+
+}

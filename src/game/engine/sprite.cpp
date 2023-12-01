@@ -1,6 +1,8 @@
 #include "sprite.h"
 
-VAO::VAO() {
+namespace engine {
+
+vao::vao() noexcept {
     glGenVertexArrays(1, &m_VAO);
     glGenBuffers(1, &m_VBO);
     glGenBuffers(1, &m_EBO);
@@ -23,32 +25,35 @@ VAO::VAO() {
                  indices.data(), GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float),
-                          (void *)0);
+                          reinterpret_cast<void const*>(0));
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float),
-                          (void *)(2 * sizeof(float)));
+                          reinterpret_cast<void const*>(sizeof(float) * 2));
     glBindVertexArray(0);
 }
 
-void VAO::clean_up() {
+auto vao::create_fallback() noexcept
+    -> vao {
+    return vao{};
+}
+
+void vao::free() {
     glDeleteBuffers(1, &m_EBO);
     glDeleteBuffers(1, &m_VBO);
     glDeleteVertexArrays(1, &m_VAO);
 }
 
-void VAO::draw() {
+void vao::draw() {
     glBindVertexArray(m_VAO);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
 }
 
-Sprite::Sprite(VAO vao, Shader shader, Texture texture) 
-    : m_vao(vao), m_shader(shader), m_texture(texture) {}
 
-auto Sprite::draw(ItemFrame const& rect)
+auto sprite::draw(ItemFrame const& rect)
     -> void {
-    assert(glIsProgram((GLuint)m_shader));
-    m_shader.use();
+    assert(glIsProgram((GLuint)shader));
+    shader.use();
 
     glm::mat4 model = glm::mat4(1.0f);
     model = glm::translate(model, glm::vec3(rect.tlc_pos, 0.0f));
@@ -58,14 +63,16 @@ auto Sprite::draw(ItemFrame const& rect)
         model = glm::translate(model, glm::vec3(-0.5f * rect.size, 0.0f));
     }
     model = glm::scale(model, glm::vec3(rect.size, 0.0f));
-    m_shader.set("model", model);
-    assert(glIsTexture((GLuint)m_texture));
+    shader.set("model", model);
+    assert(glIsTexture((GLuint)texture));
     glActiveTexture(GL_TEXTURE0);
-    m_texture.bind();
-    m_vao.draw();
+    texture.bind();
+    vao.draw();
 }
 
-auto Sprite::get_shader() const noexcept
-    -> Shader {
-    return m_shader;
+auto sprite::get_shader() const noexcept
+    -> class shader {
+    return shader;
+}
+
 }

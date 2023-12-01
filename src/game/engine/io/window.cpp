@@ -52,7 +52,7 @@ auto Window::make_context_current() noexcept
 	glfwMakeContextCurrent(window);
 }
 
-auto Window::data()
+auto Window::data() const noexcept
 	-> GLFWwindow* {
 	return window;
 }

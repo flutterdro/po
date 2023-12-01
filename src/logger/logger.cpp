@@ -1,6 +1,6 @@
 #include "logger.h"
 
-void vlog(LogLvl lvl, source_location const& loc, fmt::string_view format,
+void vlog(LogLvl lvl, std::source_location const& loc, fmt::string_view format,
           fmt::format_args args) {
     fs::path file_name{loc.file_name()};
     switch (lvl) {

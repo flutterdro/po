@@ -1,205 +1,330 @@
 #include "board.h"
+#include <ranges>
+#include <algorithm>
+#include <cassert>
 
 namespace views = std::views;
+namespace chess {
+board::board()
+    : m_turn_to_move{piece::color::white} {
+    std::ranges::fill(m_board, std::nullopt);
 
-Board::Board() { 
-    std::fill(m_board.begin(), m_board.end(), std::nullopt); 
-    m_piece_box.reserve(48);
+    m_config.m_castling = static_cast<move::castling>(move::castling::black | move::castling::white);
 
     //first 2 elements must be kings
-    add_piece<King<0>>(Square{7, 3});
-    add_piece<King<1>>(Square{0, 3});
-    add_piece<Rook<0>>(Square{7, 0});
-    add_piece<Rook<0>>(Square{7, 7});
-    add_piece<Rook<1>>(Square{0, 0});
-    add_piece<Rook<1>>(Square{0, 7});
+    add_piece<king<piece::color::black>>(to_square(7, 3));
+    add_piece<king<piece::color::white>>(to_square(0, 3));
+    add_piece<rook<piece::color::black>>(to_square(7, 0));
+    add_piece<rook<piece::color::black>>(to_square(7, 7));
+    add_piece<rook<piece::color::white>>(to_square(0, 0));
+    add_piece<rook<piece::color::white>>(to_square(0, 7));
 
 
-    add_piece<Knight<1>>(Square{0, 1});
-    add_piece<Knight<1>>(Square{0, 6});
-    add_piece<Knight<0>>(Square{7, 1});
-    add_piece<Knight<0>>(Square{7, 6});
-    add_piece<Bishop<1>>(Square{0, 2});
-    add_piece<Bishop<1>>(Square{0, 5});
-    add_piece<Bishop<0>>(Square{7, 2});
-    add_piece<Bishop<0>>(Square{7, 5});
-    add_piece<Queen<1>>(Square{0, 4});
-    add_piece<Queen<0>>(Square{7, 4});
-    for (int i = 0; i < 8; ++i) {
-        add_piece<Pawn<1>>(Square{1, i});
-        add_piece<Pawn<0>>(Square{6, i});
+    add_piece<knight<piece::color::white>>(to_square(0, 1));
+    add_piece<knight<piece::color::white>>(to_square(0, 6));
+    add_piece<knight<piece::color::black>>(to_square(7, 1));
+    add_piece<knight<piece::color::black>>(to_square(7, 6));
+    add_piece<bishop<piece::color::white>>(to_square(0, 2));
+    add_piece<bishop<piece::color::white>>(to_square(0, 5));
+    add_piece<bishop<piece::color::black>>(to_square(7, 2));
+    add_piece<bishop<piece::color::black>>(to_square(7, 5));
+    add_piece<queen<piece::color::white>>(to_square(0, 4));
+    add_piece<queen<piece::color::black>>(to_square(7, 4));
+    for (size_t i = 0; i < 8; ++i) {
+        add_piece<pawn<piece::color::white>>(to_square(1, i));
+        add_piece<pawn<piece::color::black>>(to_square(6, i));
     }
     //soft_update();
 }
 
-auto Board::operator[](Square square) 
-    -> std::optional<std::reference_wrapper<Piece>> {
-    if (m_board[square.to_index()].has_value()) {
-        return m_piece_box[*m_board[square.to_index()]].value();
+auto board::operator[](square square) 
+    -> std::optional<std::reference_wrapper<piece>> {
+    if (m_board[square.pos].has_value()) {
+        return m_piece_box[*m_board[square.pos]].value();
     }
     return {};
 }
 
-auto Board::operator[](Square square) const 
-    -> std::optional<std::reference_wrapper<Piece const>> {
-    if (m_board[square.to_index()].has_value()) {
-        return m_piece_box[*m_board[square.to_index()]].value();
+auto board::operator[](square square) const 
+    -> std::optional<std::reference_wrapper<piece const>> {
+    if (m_board[square.pos].has_value()) {
+        return m_piece_box[*m_board[square.pos]].value();
     }
     return {};
 }
 
-auto Board::at(Square square) noexcept
-    -> std::optional<Piece>& {
-        return m_piece_box[*m_board[square.to_index()]];
+auto board::at(square square) noexcept
+    -> std::optional<piece>& {
+        return m_piece_box[*m_board[square.pos]];
 }
 
-auto Board::at(Square square) const noexcept
-    -> std::optional<Piece> const& {
-    return m_piece_box[*m_board[square.to_index()]];
+auto board::at(square square) const noexcept
+    -> std::optional<piece> const& {
+    return m_piece_box[*m_board[square.pos]];
 }
 
-auto Board::move(Square from, Square to) 
-    -> std::optional<Square> {
-
-    if (m_board[to.to_index()].has_value()) at(to) = std::nullopt;
-
-    m_board[to.to_index()] = m_board[from.to_index()];
-    at(to)->set_pos(to);
-    at(to)->take_away_vcard();
-    if (*m_board[to.to_index()] == 0) {
-        if (to == Square{7, 1} and m_config.tiny_castling_black) {
-            m_piece_box[2]->set_pos({7, 2});
-            std::swap(m_board[Square{7, 0}.to_index()], m_board[Square{7, 2}.to_index()]);
-            m_config.tiny_castling_black = false;
-        }
-        if (to == Square{7, 5} and m_config.big_castling_black) {
-            m_piece_box[3]->set_pos({7, 4});
-            std::swap(m_board[Square{7, 7}.to_index()], m_board[Square{7, 4}.to_index()]);
-            m_config.big_castling_black = false;
-        }
-    }
-    if (*m_board[to.to_index()] == 1) {
-        if (to == Square{0, 1} and m_config.tiny_castling_white) {
-            m_piece_box[4]->set_pos({0, 2});
-            std::swap(m_board[Square{0, 0}.to_index()], m_board[Square{0, 2}.to_index()]);
-            m_config.big_castling_white = false;
-        }
-        if (to == Square{0, 5} and m_config.big_castling_white) {
-            m_piece_box[5]->set_pos({0, 4});
-            std::swap(m_board[Square{0, 7}.to_index()], m_board[Square{0, 4}.to_index()]);
-            m_config.tiny_castling_white = false;
-        }
-    }
-    m_board[from.to_index()] = std::nullopt;
-
-    m_is_white_turn = !m_is_white_turn;
-    return {};
-}
-
-auto Board::is_white_turn() const noexcept
-    -> bool {
-    return m_is_white_turn;
-}
-
-auto Board::promote(Square const square, PieceType const to) 
+auto board::undo_move(chess::move move) noexcept
     -> void {
+    m_board[move.source().pos] = m_board[move.destination().pos];
+    m_board[move.destination().pos] = std::nullopt;
+    at(move.source())->set_pos(move.source());
+
+    m_config.m_castling = static_cast<move::castling>(m_config.m_castling | move.castle_invalid());
+    m_config.m_enpassant = move.enpassant_invalid();
+
+    if (move.is_capture()) {
+        if (move.move_type() == move::type::en_passant) {
+            auto const is_white = m_turn_to_move == piece::color::white;
+            auto const b = is_white - !is_white; // +1 or -1 depending on whose turn to move
+            auto const square = to_square(move.destination().row() + b, move.destination().col());
+            m_board[square.pos] = move.captured_piece_index();
+            m_piece_box[move.captured_piece_index()] = create_piece(
+                piece::type::pawn,
+                m_turn_to_move,
+                square
+            );
+        } else {
+            m_board[move.destination().pos] = move.captured_piece_index();
+            m_piece_box[move.captured_piece_index()] = create_piece(
+                move.captured_piece_type(),
+                m_turn_to_move,
+                move.destination()
+            );
+        }
+    }
+
+    if (move.move_type() == move::type::promotion) {
+        at(move.source()) = m_turn_to_move == piece::color::white ?
+            piece{pawn<piece::color::black>{}, move.source()} :
+            piece{pawn<piece::color::white>{}, move.source()};
+    }
+
+    if (move.move_type() == move::type::castle) {
+        if (move.destination().col() == 1) {
+            size_t const offset = std::to_underlying(flip_color(m_turn_to_move));
+            square const rook_src{to_square(7 * (1 - offset), 0)};
+            square const rook_dest{to_square(7 * (1 - offset), 2)};
+            m_piece_box[2 + 2 * offset]->set_pos(rook_src);
+            std::swap(m_board[rook_src.pos], m_board[rook_dest.pos]);
+        } else {
+            size_t const offset{std::to_underlying(flip_color(m_turn_to_move))};
+            square const rook_src{to_square(7 * (1 - offset), 7)};
+            square const rook_dest{to_square(7 * (1 - offset), 4)};
+            m_piece_box[2 + 2 * offset + 1]->set_pos(rook_src);
+            std::swap(m_board[rook_src.pos], m_board[rook_dest.pos]);
+        }
+    }
+
+    m_turn_to_move = flip_color(m_turn_to_move);
+
 }
 
-void Board::soft_update() {
-    BitBoard white_pos;
-    BitBoard black_pos;
+
+auto board::do_move(chess::move const move) noexcept
+    -> void {
+    m_config.m_enpassant = 0;
+    m_config.m_castling = static_cast<move::castling>(m_config.m_castling & ~move.castle_invalid());
+
+    switch(move.move_type()) {
+    using enum move::type;
+    case castle:
+        if (move.destination().col() == 1) {
+            size_t const offset = std::to_underlying(m_turn_to_move);
+            square const rook_src{to_square(7 * (1 - offset), 0)};
+            square const rook_dest{to_square(7 * (1 - offset), 2)};
+            m_piece_box[2 + 2 * offset]->set_pos(rook_dest);
+            std::swap(m_board[rook_src.pos], m_board[rook_dest.pos]);
+        } else {
+            size_t const offset{std::to_underlying(m_turn_to_move)};
+            square const rook_src{to_square(7 * (1 - offset), 7)};
+            square const rook_dest{to_square(7 * (1 - offset), 4)};
+            m_piece_box[2 + 2 * offset + 1]->set_pos(rook_dest);
+            std::swap(m_board[rook_src.pos], m_board[rook_dest.pos]);
+        }
+        break;
+    case null:
+        switch (move.piece_tomove_type()) {
+        case piece::type::pawn:
+            if(std::abs(static_cast<int>(move.source().row()) - static_cast<int>(move.destination().row())) > 1) {
+                m_config.validate_enpasant(move.source().col());
+            }
+            break;
+        default:
+            break;
+        }
+
+        break;
+    case en_passant:
+        if (m_turn_to_move == piece::color::white) {
+            auto const captured_square{to_square(move.destination().row() - 1, move.destination().col())};
+            m_board[captured_square.pos] = std::nullopt;
+        } else {
+            auto const captured_square{to_square(move.destination().row() + 1, move.destination().col())};
+            m_board[captured_square.pos] = std::nullopt;
+        }
+        break;
+    case promotion:
+        at(move.source()) = create_piece(
+            move.promoted_piece_type(),
+            m_turn_to_move,
+            move.source()
+        );
+        break;
+    }
+
+    if (move.is_capture()) {
+        m_piece_box[move.captured_piece_index()] = std::nullopt;
+    }
+
+    m_board[move.destination().pos] = m_board[move.source().pos];
+    m_board[move.source().pos] = std::nullopt;
+    at(move.destination())->set_pos(move.destination());
+
+    m_turn_to_move = flip_color(m_turn_to_move);
+}
+
+auto board::move(square from, square to)
+    -> std::optional<square> {
+    if (m_board[to.pos].has_value()) at(to) = std::nullopt;
+
+    m_board[to.pos] = m_board[from.pos];
+    at(to)->set_pos(to);
+    m_board[from.pos] = std::nullopt;
+
+    m_turn_to_move = flip_color(m_turn_to_move);
+    return {};
+}
+
+auto board::turn_to_move() const noexcept
+    -> piece::color {
+    return m_turn_to_move;
+}
+// I am a conosieur of the principle assume perfect and valid data and validate it somewhere else
+auto board::gen_move_info(square source, square destination) const noexcept
+    -> chess::move {
+    chess::move ret;
+
+    auto invalidate_castle = [&config = this->m_config, &ret](piece::color color, move::castling castling) {
+        if (config.castle(color, castling)) {
+            ret.set_castle_invalid(color, castling);
+        }
+    };
+    int const horizontal_offset = static_cast<int>(source.col()) - static_cast<int>(destination.col());
+    ret.set_piece_tomove_type(at(source)->get_type());
+    ret.set_destination(destination);
+    ret.set_source(source);
+    if (ret.piece_tomove_type() == piece::type::rook) {
+        if (ret.source().col() == 0) invalidate_castle(m_turn_to_move, move::castling::kingside);
+        if (ret.source().col() == 7) invalidate_castle(m_turn_to_move, move::castling::queenside);
+    } else if (ret.piece_tomove_type() == piece::type::king) {
+        invalidate_castle(m_turn_to_move, move::castling::kingside);
+        invalidate_castle(m_turn_to_move, move::castling::queenside);
+    }
+    ret.set_move_type(move::type::null);
+    if (m_board[destination.pos].has_value()) {
+        ret.mark_capture();
+        auto const captured_type = at(destination)->get_type();
+        ret.set_captured_piece_type(captured_type);
+        if (captured_type == piece::type::rook) {
+            if (ret.destination().col() == 0) invalidate_castle(flip_color(m_turn_to_move), move::castling::kingside);
+            if (ret.destination().col() == 7) invalidate_castle(flip_color(m_turn_to_move), move::castling::queenside);
+        } else if (captured_type == piece::type::king) {
+            invalidate_castle(flip_color(m_turn_to_move), move::castling::kingside);
+            invalidate_castle(flip_color(m_turn_to_move), move::castling::queenside);
+        }
+        ret.set_captured_piece_index(*m_board[destination.pos]);
+    } else if (ret.piece_tomove_type() == piece::type::pawn and std::abs(horizontal_offset) == 1) {
+        ret.set_move_type(move::type::en_passant);
+        ret.mark_capture();
+        ret.set_captured_piece_type(piece::type::pawn);
+        ret.set_captured_piece_index(*m_board[
+            to_square(
+                m_turn_to_move == piece::color::white ?
+                    destination.row() - 1 :
+                    destination.row() + 1,
+                destination.col()
+            ).pos]
+        );
+    }
+    if (ret.piece_tomove_type() == piece::type::king and std::abs(horizontal_offset) > 1) {
+        invalidate_castle(m_turn_to_move, move::castling::kingside);
+        invalidate_castle(m_turn_to_move, move::castling::queenside);
+        ret.set_move_type(move::type::castle);
+    }
+    if (ret.piece_tomove_type() == piece::type::pawn and (destination.row() == 7 or destination.row() == 0)) {
+        ret.set_move_type(move::type::promotion);
+    }
+
+    return ret;
+}
+
+void board::soft_update() {
+    bitboard white_pos;
+    bitboard black_pos;
     for (auto const& piece : m_piece_box) {
         if (piece.has_value()) {
-            if (piece->is_white()) {
+            if (piece->get_color() == piece::color::white) {
                 white_pos.set(piece->get_pos());
             } else {
                 black_pos.set(piece->get_pos());
             }
         }
     }
+
     for (auto& piece : m_piece_box) {
         if (piece.has_value()) {
             piece->pseudo_update(white_pos, black_pos);
         }
     }
-    auto& black_king = m_piece_box[0];
-    auto& white_king = m_piece_box[1];
-    auto const& brook_right = m_piece_box[2];
-    auto const& brook_left  = m_piece_box[3];
-    auto const& wrook_right = m_piece_box[4];
-    auto const& wrook_left  = m_piece_box[5];
+    auto [white_coverage, black_coverage] = get_coverage();
 
-    auto [white_attacking, black_attacking] = get_coverage();
-
-    if (black_king.has_value() and black_king->is_first_move()) {
-        if (brook_right.has_value() and brook_right->is_first_move()) {
-            bool is_blocked = false;
-            for (int col = 1; col < 3; ++col) {
-                is_blocked = is_blocked or m_board[Square{7, col}.to_index()].has_value();
-            }
-            is_blocked = is_blocked or black_king->is_attacked(white_attacking);
-            if (not is_blocked) {
-                black_king->validate_move({7, 1});
-            }
-        } else {
-            m_config.tiny_castling_black = false;
-        }
-        if (brook_left.has_value() and brook_left->is_first_move()) {
-            bool is_blocked = false;
-            for (int col = 4; col < 7; ++col) {
-                is_blocked = is_blocked or m_board[Square{7, col}.to_index()].has_value();
-            }
-            is_blocked = is_blocked or black_king->is_attacked(white_attacking);
-            if (not is_blocked) {
-                black_king->validate_move({7, 5});
-            }
-        } else {
-            m_config.big_castling_black = false;
-        }
-    } else {
-        m_config.tiny_castling_black = false;
-        m_config.big_castling_black = false;
+    if (m_config.castle(move::castling::short_white) and
+        not (static_cast<u64>(white_pos | black_pos | black_coverage) & 0b0110_u64)) {
+        at({3})->validate_move({1});
+    }
+    if (m_config.castle(move::castling::long_white) and
+        not (static_cast<u64>(white_pos | black_pos | black_coverage) & 0b01110000_u64)) {
+        at({3})->validate_move({5});
+    }
+    if (m_config.castle(move::castling::short_black) and
+        not (static_cast<u64>(white_pos | black_pos | white_coverage) & 0b0110_u64 << 8 * 7)) {
+        at({59})->validate_move({57});
+    }
+    if (m_config.castle(move::castling::long_black) and
+        not (static_cast<u64>(white_pos | black_pos | white_coverage) & 0b01110000_u64 << 8 * 7)) {
+        at({59})->validate_move({61});
     }
 
-    if (white_king.has_value() and white_king->is_first_move()) {
-        if (wrook_right.has_value() and wrook_right->is_first_move()) {
-            bool is_blocked = false;
-            for (int col = 1; col < 3; ++col) {
-                is_blocked = is_blocked or m_board[Square{0, col}.to_index()].has_value();
+    auto col = std::bit_width(m_config.m_enpassant) - 1;
+    if (col >= 0) {
+        bool const a = m_turn_to_move == piece::color::white;
+        int const b = a - !a;
+        unsigned const row = 3 + a;
+        if (col != 0) {
+            if (m_board[to_square(row, col - 1).pos].has_value() and
+                at(to_square(row, col - 1))->get_type() == piece::type::pawn) {
+                at(to_square(row, col - 1))->validate_move(to_square(row + b, col));
             }
-            is_blocked = is_blocked or white_king->is_attacked(black_attacking);
-            if (not is_blocked) {
-                white_king->validate_move({0, 1});
-            }
-        } else {
-            m_config.tiny_castling_white = false;
         }
-        if (wrook_left.has_value() and wrook_left->is_first_move()) {
-            bool is_blocked = false;
-            for (int col = 4; col < 7; ++col) {
-                is_blocked = is_blocked or m_board[Square{0, col}.to_index()].has_value();
+        if (col != 7) {
+            if (m_board[to_square(row, col + 1).pos].has_value() and
+                at(to_square(row, col + 1))->get_type() == piece::type::pawn) {
+                at(to_square(row, col + 1))->validate_move(to_square(row + b, col));
             }
-            is_blocked = is_blocked or white_king->is_attacked(black_attacking);
-            if (not is_blocked) {
-                white_king->validate_move({0, 5});
-            }
-        } else {
-            m_config.big_castling_white = false;
         }
-    } else {
-        m_config.tiny_castling_white = false;
-        m_config.big_castling_white = false;
     }
+
 }
 
-auto Board::get_coverage() const noexcept
-    -> std::pair<BitBoard, BitBoard> {
-    BitBoard white_coverage;
-    BitBoard black_coverage;
+auto board::get_coverage() const noexcept
+    -> std::pair<bitboard, bitboard> {
+    bitboard white_coverage;
+    bitboard black_coverage;
     auto has_value = []<typename T>(std::optional<T> const& v) { return v.has_value(); };
+
     for (auto const& piece :
          m_piece_box | views::filter(has_value)) {
-        if (piece->is_white()) {
+        if (piece->get_color() == piece::color::white) {
             white_coverage |= piece->get_coverage();
         } else {
             black_coverage |= piece->get_coverage();
@@ -208,73 +333,74 @@ auto Board::get_coverage() const noexcept
     return {white_coverage, black_coverage};
 }
 
-auto Board::get_config() const noexcept 
-    -> BoardConfig { return m_config; }
+auto board::get_config() const noexcept 
+    -> config { return m_config; }
 
-auto Board::hard_update() -> void {
+auto board::hard_update() -> void {
     soft_update();
 }
 
-auto Board::get_pieces() const noexcept
-    -> std::vector<std::optional<Piece>> const& {
+auto board::get_pieces() const noexcept
+    -> std::array<std::optional<piece>, 32> const& {
     return m_piece_box;
 }
 
-auto Board::evaluate()
+auto board::evaluate()
     -> float {
-    int evaluation = 0;
+    float evaluation = 0;
     for (auto const& piece : m_piece_box) {
             if (piece.has_value()) {
-                bool is_white = piece->is_white();
-                switch(piece->type()) {
-                using enum PieceType;
-                case King:
+                auto is_white = piece->get_color() == piece::color::white;
+                switch(piece->get_type()) {
+                using enum piece::type;
+                case king:
                     evaluation += is_white ? 200 : -200;
                     break;
-                case Pawn:
+                case pawn:
                     evaluation += is_white ? 1 : -1;
                     break;
-                case Knight:
+                case knight:
                     evaluation += is_white ? 3 : -3;
                     break;
-                case Bishop:
+                case bishop:
                     evaluation += is_white ? 5 : -5;
                     break;
-                case Rook:
+                case rook:
                     evaluation += is_white ? 5 : -5;
                     break;
-                case Queen:
+                case queen:
                     evaluation += is_white ? 9 : -9;
                     break;
                 }
             }
         }
-    return m_is_white_turn ? evaluation : -evaluation;
+    return m_turn_to_move == piece::color::white ? evaluation : -evaluation;
 }
 
-auto Board::to_ibr() 
+auto board::to_ibr() 
     -> IntermediateBoardRepresentation {
     IntermediateBoardRepresentation ret;
     auto has_value = [] <typename T> (std::optional<T> const& v) { return v.has_value(); };
     for (auto const& piece : m_piece_box | views::filter(has_value)) {
-        ret[piece->get_pos()] = {piece->type(), piece->is_white()};
+        ret[piece->get_pos()] = {static_cast<PieceType>(piece->get_type()), piece->get_color() == piece::color::white};
     }
     return ret;
 }
 
-auto Board::swap(Board& other)
+auto board::swap(board& other) noexcept
     -> void {
     std::swap(m_board, other.m_board);
     std::swap(m_piece_box, other.m_piece_box);
     std::swap(m_config, other.m_config);
 }
 
-auto Board::reset()
+auto board::reset()
     -> void {
-    Board{}.swap(*this);
+    board{}.swap(*this);
 }
 
-auto Board::set_turn(bool turn) noexcept
+auto board::set_turn(piece::color color) noexcept
     -> void {
-    m_is_white_turn = turn;
+    m_turn_to_move = color;
+}
 }

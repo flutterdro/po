@@ -13,7 +13,7 @@ bool Mouse::m_is_first_appearance                     = true;
 bool Mouse::m_buttons[GLFW_MOUSE_BUTTON_LAST]         = {0};
 bool Mouse::m_buttons_changed[GLFW_MOUSE_BUTTON_LAST] = {0};
 
-void Mouse::cursorPosCallback(GLFWwindow * window, double x, double y) {
+void Mouse::cursorPosCallback(GLFWwindow*, double x, double y) {
     m_x = x;
     m_y = y;
 
@@ -29,8 +29,8 @@ void Mouse::cursorPosCallback(GLFWwindow * window, double x, double y) {
     m_last_y = y;
 }
 
-void Mouse::mouseButtonCallback(GLFWwindow * window, int button, int action,
-                                int mods) {
+void Mouse::mouseButtonCallback(GLFWwindow*, int button, int action,
+                                [[maybe_unused]]int mods) {
     if (action != GLFW_RELEASE) {
         if (!m_buttons[button]) { m_buttons[button] = true; }
     } else {
@@ -39,7 +39,7 @@ void Mouse::mouseButtonCallback(GLFWwindow * window, int button, int action,
     m_buttons_changed[button] = action != GLFW_REPEAT;
 }
 
-void Mouse::mouseWheelCallback(GLFWwindow * window, double dx, double dy) {
+void Mouse::mouseWheelCallback(GLFWwindow*, double dx, double dy) {
     m_scroll_dx = dx;
     m_scroll_dy = dy;
 }

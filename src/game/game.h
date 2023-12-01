@@ -6,7 +6,6 @@
 
 #include <glm/glm.hpp>
 #include <ranges>
-#include <system_error>
 
 #include "engine/io/mouse.h"
 #include "engine/io/window.h"
@@ -14,12 +13,9 @@
 #include "engine/shader.h"
 #include "engine/texture.h"
 #include "engine/basic-shapes/rectangle.hpp"
-#include "ai/search.h"
-#include "logic/piece.h"
 #include "logic/board.h"
 #include "ui/ui.h"
 #include "utilities/rectangle.h"
-#include "utilities/zobrist-hash.h"
 
 auto loadResources()  //
     -> void;
@@ -32,26 +28,26 @@ enum class GameState {
 class ChessWidget {
 public:
     ChessWidget() = delete;
-    ChessWidget(Board&);
+    ChessWidget(chess::board&);
     auto draw()
         -> void;
     auto on_click_action()
-        -> void;
+        -> std::optional<chess::move>;
     auto on_hover_action() 
         -> void {}
     auto get_square(glm::vec2) const
-        -> Square;
+        -> chess::square;
     auto get_sprite()
-        -> Sprite&;
+        -> engine::sprite&;
     static auto load_resources()
         -> void;
 private:
-    Sprite m_sprite;
+    engine::sprite m_sprite;
     ItemFrame rect;
-    std::array<std::array<Sprite, 6>, 2> piece_s;
+    std::array<std::array<engine::sprite, 6>, 2> piece_s;
     IntermediateBoardRepresentation i_board;
-    std::optional<Square> m_selected{};
-    Board& m_board;
+    std::optional<chess::square> m_selected{};
+    chess::board& m_board;
 };
 
 class EvalBar {
@@ -66,8 +62,8 @@ public:
 private:
     float prev_eval{0.0f};
     float& curr_eval;
-    rectangle white;
-    rectangle black;
+    engine::rectangle white;
+    engine::rectangle black;
 };
 
 class Game {
@@ -81,12 +77,15 @@ public:
     auto proccessInput()  //
         -> void;
 private:
+    auto undo_move()
+        -> void;
     auto proccessClick()  //
         -> void;
 private:
     float evaluation;
 private:
-    Board m_board;
+    chess::board m_board;
+    std::vector<chess::move> m_move_history;
     Window& m_window;
     ChessWidget m_gui;
     EvalBar eval_bar;

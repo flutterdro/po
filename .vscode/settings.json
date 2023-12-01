@@ -87,7 +87,8 @@
         "filesystem": "cpp",
         "ranges": "cpp",
         "functional": "cpp",
-        "iterator": "cpp"
+        "iterator": "cpp",
+        "source_location": "cpp"
     },
     "cmake.buildDirectory": "${workspaceRoot}/build/${buildType}",
     "editor.formatOnSave": false,

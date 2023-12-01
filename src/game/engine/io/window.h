@@ -19,7 +19,7 @@ public:
 		-> int;
 	auto make_context_current() noexcept
 		-> void;
-	auto data()
+	auto data() const noexcept
 		-> GLFWwindow*;
 	auto update()
 		-> void;
@@ -31,10 +31,17 @@ public:
     		Mouse_t::mouseButtonCallback(window, y, y, y);
     		Mouse_t::mouseWheelCallback(window, x, x);
 		}
-	void setup_mouse_callbacks(Mouse_t const&) {
+	void setup_mouse_callbacks() {
 		glfwSetCursorPosCallback(window, Mouse_t::cursorPosCallback);
     	glfwSetScrollCallback(window, Mouse_t::mouseWheelCallback);
     	glfwSetMouseButtonCallback(window, Mouse_t::mouseButtonCallback);
+	}
+	template<typename Keyboard_t>
+		requires requires(GLFWwindow* window, int x) {
+			Keyboard_t::keyCallback(window, x, x, x, x);
+		}
+	void setup_keyboard_callback() {
+		glfwSetKeyCallback(window, Keyboard_t::keyCallback);
 	}
 	~Window();
 private:

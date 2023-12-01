@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.24)
 project(prmai VERSION 0.5.0)
 
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_COLOR_DIAGNOSTICS ON CACHE BOOL "" FORCE)
@@ -57,6 +57,7 @@ PUBLIC $<$<CONFIG:DEBUG>:
      -fsanitize=address
      -fsanitize=undefined>
      $<$<CONFIG:RELEASE>:-flto>
+     -fexperimental-library
 )
 target_link_options(${PROJECT_NAME}
      PUBLIC

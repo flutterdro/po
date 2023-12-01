@@ -3,13 +3,14 @@
 
 #include "../sprite.h"
 
+namespace engine {
 class rectangle {
 public:
 	rectangle() = default;
 	rectangle(glm::vec3 color, ItemFrame const& frame)
 		: color{color}, frame{frame} {
-		ResourceManager& rm = ResourceManager::get_instance();
-		shader = rm.request_shader("basic-rectangle");
+		resource_manager& rm = resource_manager::get_instance();
+		shader = rm.request<class shader>("basic-rectangle");
 	}
 	auto draw() noexcept
 		-> void {
@@ -37,10 +38,12 @@ public:
 		return *this;
 	}
 private:
-	VAO vao{};
-	Shader shader;
+	vao vao{};
+	shader shader;
 	glm::vec3 color;
 	ItemFrame frame;
 };
+
+}
 
 #endif

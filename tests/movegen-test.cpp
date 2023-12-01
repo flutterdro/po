@@ -1,35 +1,61 @@
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/generators/catch_generators.hpp>
+#include <catch2/generators/catch_generators_all.hpp>
+#include <fstream>
+#include <vector>
 
 #include "../src/game/logic/piece.h"
 
-TEST_CASE("Pseudo legal move generation", "[plmg]") {
-	BitBoard const white_ocupying{10732882775568128};
-	BitBoard const black_ocupying{17818793201004187648};
+TEST_CASE("Knight movegen", "[movegen][knight]") {
 
-	SECTION("Knight") {
-		Piece white_knight{Knight<true>{}, {2, 0}};
-		Piece black_knight{Knight<false>{}, {2, 0}};
-		white_knight.pseudo_update(white_ocupying, black_ocupying);
-		black_knight.pseudo_update(white_ocupying, black_ocupying);
-		REQUIRE(white_knight.get_moves() == BitBoard{8657043458});
-		REQUIRE(black_knight.get_moves() == BitBoard{67109890});
+}
+
+TEST_CASE("Bishop movegen", "[movegen][bishop]") {
+
+}
+
+TEST_CASE("Rook movegen", "[movegen][rook]") {
+	std::vector<chess::bitboard> black_poss;
+	std::vector<chess::bitboard> white_poss;
+	std::vector<chess::square>   poss;
+	if(std::fstream fin{"../../../tests/test-data/movegen/black-pos.data"}) {
+		u64 buff;
+		while (fin >> buff) {
+			black_poss.push_back(chess::bitboard{buff});
+		}
+	} else {
+		fmt::print("YOU ARE A FAILURE\n");
 	}
-	SECTION("Bishop") {
-
-		Piece white_bishop{Bishop<true>{}, {4, 3}};
-		Piece black_bishop{Bishop<false>{}, {4, 3}};
-		white_bishop.pseudo_update(white_ocupying, black_ocupying);
-		black_bishop.pseudo_update(white_ocupying, black_ocupying);
-		REQUIRE(white_bishop.get_moves() == BitBoard{21990570328064});
-		REQUIRE(black_bishop.get_moves() == BitBoard{567348337721600});
+	if(std::fstream fin{"../../../tests/test-data/movegen/white-pos.data"}) {
+		u64 buff;
+		while (fin >> buff) {
+			white_poss.push_back(chess::bitboard{buff});
+		}
+	} else {
+		fmt::print("YOU ARE A FAILURE\n");
 	}
-
-	SECTION("Rook") {
-		Piece black_rook{Rook<false>{}, {4, 6}};
-		black_rook.pseudo_update(white_ocupying, black_ocupying);
-		REQUIRE(black_rook.get_moves() == BitBoard{71177275965440});
+	if(std::fstream fin{"../../../tests/test-data/movegen/positions.data"}) {
+		unsigned buff;
+		while (fin >> buff) {
+			poss.push_back(chess::square{buff});
+		}
+	} else {
+		fmt::print("YOU ARE A FAILURE\n");
 	}
+	SECTION("Generating") {
+		chess::rook<chess::piece::color::white> instance;
+		size_t i = GENERATE(0, 1, 2, 3, 4);
+		size_t j = GENERATE(0, 1, 2, 3, 4);
+		size_t k = GENERATE(0, 1, 2, 3, 4, 5, 6, 7);
+		auto a = instance.pseudo_update(white_poss[i] | black_poss[j], poss[k]);
+		auto b = chess::rook<chess::piece::color::white>::naive_update(white_poss[i] | black_poss[j], poss[k]);
+		fmt::print("{}\n\n{}\n--------\n", a, b);
+		REQUIRE(a == b);
+	}
+}
 
+TEST_CASE("Queen movegen", "[movegen][queen]") {
+    
 }
 
 // 0000'0000'0000'0000'0100'0000'1011'1100'0100'0000'0100'0000'0000'0000'0000'0000

@@ -1,5 +1,6 @@
 add_executable(unitTests 
     test.cpp
+    ../src/game/logic/piece.cpp
     movegen-test.cpp
     bitboard-test.cpp
 )

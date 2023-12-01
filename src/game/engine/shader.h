@@ -6,6 +6,7 @@
 #include <sstream>
 #include <type_traits>
 #include <filesystem>
+#include <vector>
 
 #include <glad/gl.h>
 #include <glm/glm.hpp>
@@ -16,14 +17,14 @@
 
 namespace fs = std::filesystem;
 
-class Shader {
+namespace engine {
+class shader {
 public:
-    Shader() = default;
-    Shader(fs::path const&);
-    std::optional<Shader> load(char const * vs_path, char const * fs_path);
+    shader() = default;
+    shader(fs::path const&);
 
-    auto create_default()
-        -> Shader;
+    static auto create_fallback() noexcept
+        -> shader;
 
     void set(std::string const& name, int value) noexcept;
     void set(std::string const& name, float value) noexcept;
@@ -42,7 +43,7 @@ public:
 
     void use() const noexcept;
 
-    void clean_up();
+    void free();
 
     constexpr explicit operator GLuint() const noexcept { return m_id; }
 private:
@@ -51,5 +52,7 @@ private:
 private:
     GLuint m_id;
 };
+
+}
 
 #endif

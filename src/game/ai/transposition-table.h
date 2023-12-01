@@ -1,8 +1,8 @@
 #ifndef TRANSPOSITION_TABLE_H__
 #define TRANSPOSITION_TABLE_H__
 
-#include <unordered_set>
 #include <fstream>
+#include <unordered_map>
 
 #include "../logic/board.h"
 
@@ -22,21 +22,14 @@ struct TTEntry {
 	float evaluation{0.0f};
 };
 
-// namespace std {
-// template<>
-// struct hash<TTEntry> {
-// 	auto operator()(TTEntry const& key) const noexcept {
-// 		return std::hash<u64>{}(key.zobrist_key);
-// 	}
-// };	
-// }
-
 class TTable {
 public:
 	TTable() = default;
 	[[nodiscard]]
 	auto find_entry(zobrist_key) const noexcept
-		-> std::optional<std::reference_wrapper<const TTEntry>>;
+		-> std::optional<std::reference_wrapper<TTEntry const>>;
+	auto find_eval(zobrist_key) const noexcept
+		-> std::optional<float>;
 	[[nodiscard]]
 	auto find_entry_mut(zobrist_key) noexcept
 		-> std::optional<std::reference_wrapper<TTEntry>>;
@@ -48,11 +41,11 @@ public:
 		-> void;
 
 	[[nodiscard]]
-	static auto gen_key(Board const&) noexcept
+	static auto gen_key(chess::board const&) noexcept
 		-> zobrist_key;
 private:
 	std::unordered_map<zobrist_key, TTEntry> m_entries;
-
+	mutable std::mutex m_mutex;
 	static std::array<u64, 781> const rand_seq;
 };
 

@@ -1,10 +1,11 @@
 #include "shader.h"
 
-Shader::Shader(fs::path const& dir) {
+namespace engine {
+
+shader::shader(fs::path const& dir) {
     std::vector<GLuint> shaders{};
     shaders.reserve(24);
     m_id = glCreateProgram();
-    bool vs_present = false, fs_present = false, gs_present = false;
     auto fail_cleanup = [&]() {
         for (auto& shader : shaders) {
             glDeleteShader(shader);
@@ -23,7 +24,6 @@ Shader::Shader(fs::path const& dir) {
                     fail_cleanup();
                     throw std::runtime_error("Shader compilation error, read logs");
                 }
-                vs_present = true;
             } else if (dir_entry.path().extension() == ".fs") {
                 GLuint fs;
                 fs = glCreateShader(GL_FRAGMENT_SHADER);
@@ -33,7 +33,6 @@ Shader::Shader(fs::path const& dir) {
                     fail_cleanup();
                     throw std::runtime_error("Shader compilation error, read logs");
                 }
-                fs_present = true;
             } else if (dir_entry.path().extension() == ".gs") {
                 GLuint gs;
                 gs = glCreateShader(GL_GEOMETRY_SHADER);
@@ -43,7 +42,6 @@ Shader::Shader(fs::path const& dir) {
                     fail_cleanup();
                     throw std::runtime_error("Shader compilation error, read logs");
                 }
-                gs_present = true;
             } else {
                 // fmt::print("{}\n", dir_entry.path().extension().c_str());
                 log(LogLvl::ERROR, "Encountered invalid file format while processing {} shader\n", dir.c_str());
@@ -71,42 +69,8 @@ Shader::Shader(fs::path const& dir) {
     }
 }
 
-// std::optional<Shader> Shader::load(char const * vs_path, char const * fs_path) {
-//     GLuint vs, fs;
-//     vs = glCreateShader(GL_VERTEX_SHADER);
-//     fs = glCreateShader(GL_FRAGMENT_SHADER);
-//     bool are_compiled =
-//         !compileShader(vs, vs_path) && !compileShader(fs, fs_path);
-//     if (!are_compiled) {
-//         glDeleteShader(vs);
-//         glDeleteShader(fs);
-//         return {};
-//     }
-
-//     int success;
-//     char info_log[512];
-//     m_id = glCreateProgram();
-//     glAttachShader(m_id, vs);
-//     glAttachShader(m_id, fs);
-//     glLinkProgram(m_id);
-//     glGetProgramiv(m_id, GL_LINK_STATUS, &success);
-//     if (!success) {
-//         glGetProgramInfoLog(m_id, 512, nullptr, info_log);
-//         log(LogLvl::ERROR, "Failed to link a program:\n{}", info_log);
-//         glDeleteProgram(m_id);
-//         glDeleteShader(vs);
-//         glDeleteShader(fs);
-//         return {};
-//     } else {
-//         log(LogLvl::STATUS, "Succesfully linked a program\n");
-//     }
-//     glDeleteShader(vs);
-//     glDeleteShader(fs);
-//     return *this;
-// }
-
-auto Shader::create_default() 
-    -> Shader {
+auto shader::create_fallback() noexcept
+    -> shader {
     char const * vs_src =
         "#version 330 core\n"
         "layout (location = 1) in vec2 aTexCoord;\n"
@@ -155,22 +119,23 @@ auto Shader::create_default()
         log(LogLvl::ERROR, "Failed to compile a shader:\n{}", info_log);
     }
 
-    m_id = glCreateProgram();
-    glAttachShader(m_id, vs);
-    glAttachShader(m_id, fs);
-    glLinkProgram(m_id);
+    GLuint id = glCreateProgram();
+    glAttachShader(id, vs);
+    glAttachShader(id, fs);
+    glLinkProgram(id);
 
     glDeleteShader(vs);
     glDeleteShader(fs);
-
-    return *this;
+    shader shader_;
+    shader_.m_id = id;
+    return shader_;
 }
 
-void Shader::use() const noexcept { glUseProgram(m_id); }
+void shader::use() const noexcept { glUseProgram(m_id); }
 
-void Shader::clean_up() { glDeleteProgram(m_id); }
+void shader::free() { glDeleteProgram(m_id); }
 
-int Shader::compile_shader(GLuint shader, fs::path const& file) const {
+int shader::compile_shader(GLuint shader, fs::path const& file) const {
     int success;
     char info_log[512];
     std::string shader_str  = load_shader_src(file);
@@ -187,7 +152,7 @@ int Shader::compile_shader(GLuint shader, fs::path const& file) const {
     return 0;
 }
 
-auto Shader::load_shader_src(fs::path const& path) const
+auto shader::load_shader_src(fs::path const& path) const
     -> std::string {
     std::string ret;
     std::fstream fin;
@@ -199,38 +164,40 @@ auto Shader::load_shader_src(fs::path const& path) const
     return ret;
 }
 
-void Shader::set(std::string const& name, int value) noexcept {
+void shader::set(std::string const& name, int value) noexcept {
     use();
     glUniform1i(glGetUniformLocation(m_id, name.c_str()), value);
 }
-void Shader::set(std::string const& name, float value) noexcept {
+void shader::set(std::string const& name, float value) noexcept {
     use();
     glUniform1f(glGetUniformLocation(m_id, name.c_str()), value);
 }
-void Shader::set(std::string const& name, float value_1,
+void shader::set(std::string const& name, float value_1,
                  float value_2) noexcept {
     use();
     glUniform2f(glGetUniformLocation(m_id, name.c_str()), value_1, value_2);
 }
-void Shader::set(std::string const& name, glm::vec2 value) noexcept {
+void shader::set(std::string const& name, glm::vec2 value) noexcept {
     set(name, value.x, value.y);
 }
-void Shader::set(std::string const& name, float value_1, float value_2,
+void shader::set(std::string const& name, float value_1, float value_2,
                  float value_3) noexcept {
     use();
     glUniform3f(glGetUniformLocation(m_id, name.c_str()), value_1, value_2,
                 value_3);
 }
-void Shader::set(std::string const& name, glm::vec3 value) noexcept {
+void shader::set(std::string const& name, glm::vec3 value) noexcept {
     set(name, value.x, value.y, value.z);
 }
-void Shader::set(std::string const& name, glm::mat3 value) noexcept {
+void shader::set(std::string const& name, glm::mat3 value) noexcept {
     use();
     glUniformMatrix3fv(glGetUniformLocation(m_id, name.c_str()), 1, GL_FALSE,
                        glm::value_ptr(value));
 }
-void Shader::set(std::string const& name, glm::mat4 value) noexcept {
+void shader::set(std::string const& name, glm::mat4 value) noexcept {
     use();
     glUniformMatrix4fv(glGetUniformLocation(m_id, name.c_str()), 1, GL_FALSE,
                        glm::value_ptr(value));
+}
+
 }
